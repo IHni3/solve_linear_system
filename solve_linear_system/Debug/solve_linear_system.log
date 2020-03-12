@@ -1,0 +1,10 @@
+﻿  solve_linear_system.c
+C:\Users\TimHönnigeAwesome\source\repos\solve_linear_system\solve_linear_system\solve_linear_system.c(22,34): warning C4022: "inputIsValid": Zeigertyp für übergebenen Parameter 2 stimmt nicht mit dem deklarierten Zeigertyp überein
+C:\Users\TimHönnigeAwesome\source\repos\solve_linear_system\solve_linear_system\solve_linear_system.c(22,40): warning C4047: "Funktion": Anzahl der Dereferenzierungen bei "int" und "va_list" unterschiedlich
+C:\Users\TimHönnigeAwesome\source\repos\solve_linear_system\solve_linear_system\solve_linear_system.c(22,40): warning C4024: "inputIsValid": unterschiedliche Typen für formalen und übergebenen Parameter 3
+C:\Users\TimHönnigeAwesome\source\repos\solve_linear_system\solve_linear_system\solve_linear_system.c(100,18): warning C4028: Formaler Parameter "3" unterscheidet sich von der Deklaration
+C:\Users\TimHönnigeAwesome\source\repos\solve_linear_system\solve_linear_system\solve_linear_system.c(100,27): warning C4047: "Funktion": Anzahl der Dereferenzierungen bei "int" und "Matrix *" unterschiedlich
+C:\Users\TimHönnigeAwesome\source\repos\solve_linear_system\solve_linear_system\solve_linear_system.c(100,27): warning C4024: "input": unterschiedliche Typen für formalen und übergebenen Parameter 6
+C:\Users\TimHönnigeAwesome\source\repos\solve_linear_system\solve_linear_system\solve_linear_system.c(106,30): warning C4047: "Funktion": Anzahl der Dereferenzierungen bei "int" und "Method *" unterschiedlich
+C:\Users\TimHönnigeAwesome\source\repos\solve_linear_system\solve_linear_system\solve_linear_system.c(106,30): warning C4024: "input": unterschiedliche Typen für formalen und übergebenen Parameter 6
+  solve_linear_system.vcxproj -> C:\Users\TimHönnigeAwesome\source\repos\solve_linear_system\Debug\solve_linear_system.exe

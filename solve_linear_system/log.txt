@@ -1,0 +1,24 @@
+linear_system_functions.h:267:9: warning: unused variable 'ret1' [-Wunused-variable]
+    bool ret1 = initVector(pResultsVector, nCoefficients);
+         ^~~~
+linear_system_functions.h:273:9: warning: unused variable 'ret2' [-Wunused-variable]
+    bool ret2 = initVector(pStartVector, nCoefficients);
+         ^~~~
+linear_system_functions.h:254:17: warning: unused variable 'ulSize' [-Wunused-variable]
+   unsigned long ulSize = 0;  // Input File size
+                 ^~~~~~
+In file included from solve_linear_system.c:6:0:
+linear_system_functions.h: In function 'readFile':
+linear_system_functions.h:267:9: warning: unused variable 'ret1' [-Wunused-variable]
+    bool ret1 = initVector(pResultsVector, nCoefficients);
+         ^~~~
+linear_system_functions.h:273:9: warning: unused variable 'ret2' [-Wunused-variable]
+    bool ret2 = initVector(pStartVector, nCoefficients);
+         ^~~~
+linear_system_functions.h:254:17: warning: unused variable 'ulSize' [-Wunused-variable]
+   unsigned long ulSize = 0;  // Input File size
+                 ^~~~~~
+solve_linear_system.c: In function 'main':
+solve_linear_system.c:18:8: warning: unused variable 'bRet' [-Wunused-variable]
+   bool bRet = load("C:\\Testdaten\\konv500.csv", pMatrix, pResultsVector, pStartVector);
+        ^~~~

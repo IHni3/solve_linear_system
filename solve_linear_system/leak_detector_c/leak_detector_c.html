@@ -1,0 +1,184 @@
+<!--------------------------------------------------------------------------->  
+<!--                           INTRODUCTION                                
+
+ The Code Project article submission template (HTML version)
+
+Using this template will help us post your article sooner. To use, just 
+follow the 3 easy steps below:
+ 
+     1. Fill in the article description details
+     2. Add links to your images and downloads
+     3. Include the main article text
+
+That's all there is to it! All formatting will be done by our submission
+scripts and style sheets. 
+
+-->  
+<!--------------------------------------------------------------------------->  
+<!--                        IGNORE THIS SECTION                            -->
+<html>
+<head>
+<title>The Code Project</title>
+<Style>
+BODY, P, TD { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10pt }
+H2,H3,H4,H5 { color: #ff9900; font-weight: bold; }
+H2 { font-size: 13pt; }
+H3 { font-size: 12pt; }
+H4 { font-size: 10pt; color: black; }
+PRE { BACKGROUND-COLOR: #FBEDBB; FONT-FAMILY: "Courier New", Courier, mono; WHITE-SPACE: pre; }
+CODE { COLOR: #990000; FONT-FAMILY: "Courier New", Courier, mono; }
+</style>
+<link rel="stylesheet" type=text/css href="http://www.codeproject.com/styles/global.css">
+</head>
+<body bgcolor="#FFFFFF" color=#000000>
+<!--------------------------------------------------------------------------->  
+
+
+<!-------------------------------     STEP 1      --------------------------->
+<!--  Fill in the details (CodeProject will reformat this section for you) -->
+
+<pre>
+Title:       Memory leak detection in C
+Author:      Rabinarayan Biswal
+Email:       rabinarayanb@mindfiresolutions.com
+Member ID:   4264280
+Language:    C++
+Platform:    Windows/Linux
+Technology:  Generic
+Level:       Beginner
+Description: a simple yet effective solution to memory leak detection in C code
+Section      C++/MFC
+SubSection   None
+</pre>
+<!-------------------------------     STEP 2      --------------------------->
+<!--  Include download and sample image information.                       --> 
+
+<ul class=download>
+<li><a href="leak_detector_c_src.zip">Download source - 3 Kb</a></li>
+</ul>
+
+
+<!-------------------------------     STEP 3      --------------------------->
+<!--  Add the article text. Please use simple formatting (<h2>, <p> etc)   --> 
+
+<h2>Introduction</h2>
+
+<p>	Memory leak has always been a part of bugs in  C code where a programmer allocates memory in run time (in heap) and 		fails to deallocate it . And most programmers use some third party software to detect memory leak in  their code .
+	
+<p>	But we can write very simple code to detect memory leak in our program .
+	
+<p>	Usually we allocate memory in C using malloc() and calloc() in run time and deallocate 	the reserved memory using 		free() . Sometimes we donot free the reserved memory which causes  memory leak
+
+<p>	The below method is a very simple one and helps to detect  memory leak in your program.
+
+
+<h2>Using the code</h2>
+
+
+<p>	Lets assume you have allocated some memory in your code using malloc() and calloc()
+	and haven't deallocated it and your code looks like below .
+
+	<pre>
+	test.c
+
+	#include<malloc.h>
+	int main() 
+	{
+		char * ptr1 = (char *) malloc (10); // allocating 10 bytes
+		int * ptr2 = (int *) calloc (10, sizeof(int)); // allocating 40 bytes let sizeof int =  4 bytes)
+		float * ptr3 = (float *) calloc (15, sizeof(float)); // allocating 60 bytes
+		............
+		............
+		............
+		free(ptr2);
+		return 0;
+	}
+	
+	</pre>
+
+<p>	STEPS TO DETECT MEMORY LEAK :
+<p>	(I have tested the code in a linux machine using GCC . you can test the same code in Windows as well.)
+
+<p>	STEP1 :
+<p>	Now to test memory leak, just add the leak_detector_c.h file to the test file and just add one line to the start of
+	main function .
+
+<p>	Now the test code should look like below .
+
+	
+	<pre>
+	test.c
+
+	#include<malloc.h>
+	#include "leak_detector_c.h"
+
+	int main() 
+	{
+		char * ptr1; 
+		int * ptr2; 
+		float * ptr3;
+
+		atexit(report_mem_leak);
+
+		ptr1 = (char *) malloc (10); // allocating 10 bytes		
+		ptr2 = (int *) calloc (10, sizeof(int)); // allocating 40 bytes let sizeof int =  4 bytes)
+		ptr3 = (float *) calloc (15, sizeof(float)); // allocating 60 bytes
+		
+		............
+		............
+		............
+		free(ptr2);
+		return 0;
+	}
+	
+	</pre>
+
+	STEP2 :
+
+	Now compile the code and run the program .
+	<pre>
+		# gcc -c leak_detector_.c
+		# gcc -c test.c
+		# gcc -o memtest leak_detctor_c.o test.o
+		# ./memtest
+		# cat /home/leak_info.txt
+	</pre>
+
+	Now you will get the output like below :
+	
+	<pre>
+	Memory Leak Summary
+	-----------------------------------
+	address : 140668936
+	size    : 10 bytes
+	file    : test.c
+	line    : 5
+	-----------------------------------
+	address : 140669560
+	size    : 60 bytes
+	file    : test.c
+	line    : 7
+	-----------------------------------
+	</pre>
+
+<p>	The output shows the file name and line number which causes the memoryleak and now you can free the unallocated 		memory. If you have multiple source files, you can add the header file in all the files where you want to detect 
+	posiible memory leak and compile the program as above.
+
+
+<p>	Now lets have look into the code and how it works .
+
+<p>	The leak_detctor_c.h file contains some macros and the preprocessor replaces the call of malloc, calloc and free 		functions with 	xmalloc, xcalloc and xfree respectively .
+
+<p> 	While calling malloc() our xmalloc() is called and We keep all information of the allocated memory (like the 			address, size, file name and line number) in a linked list. while the code call the free() function, it actually 		calls our xfree() and we manage to do the cleanup task (remove the entry of the allocated memory from the list and 		free up the allocated memory).
+
+<p>	At the end of the program, we can get the unallocated memory references from the list. 
+
+<p>	The line "atexit(report_mem_leak)" registers the report_mem_leak() function to be called at the end of the program 	and this function writes the memory leak summary in to the leak_info.txt file.
+	you can also use #pragma exit dirctive instead of atexit().
+
+
+
+
+<!-------------------------------    That's it!   --------------------------->
+</body>
+</html>
