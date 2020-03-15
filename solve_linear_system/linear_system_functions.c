@@ -717,7 +717,7 @@ clock_t startStopwatch()
 
 
 /*
-*Function: startStopwatch
+*Function: stopStopwatch
 *--------------------
 * Returns the number of clock ticks elapsed since the program was launched.
 *
