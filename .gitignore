@@ -50,3 +50,5 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+.vs/solve_linear_system/v16/Browse.VC.db
+.vs/solve_linear_system/v16/.suo
