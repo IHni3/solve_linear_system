@@ -77,7 +77,7 @@ bool test_initVector()
 
 	bRet &= initVector(&vectStack, 10);
 
-	for (int i = 0; i < vectStack.n; i++)
+	for (uint32_t i = 0; i < vectStack.n; i++)
 			vectStack.data[i] = 1.2405;
 
 	if (bRet == false)
@@ -102,8 +102,8 @@ bool test_initMatrix()
 	bRet &= !initMatrix(matrixHeap, 1);
 
 	bRet &= initMatrix(&matrixStack, 10);
-	for (int i = 0; i < matrixStack.n; i++)
-		for (int j = 0; j < matrixStack.n; j++)
+	for (uint32_t i = 0; i < matrixStack.n; i++)
+		for (uint32_t j = 0; j < matrixStack.n; j++)
 			matrixStack.data[i][j] = 1.2405;
 
 	if (bRet == false)
@@ -119,7 +119,7 @@ bool test_initMatrix()
 
 bool test_getDimensionsFromFile()
 {
-	int rows, cols;
+	uint32_t rows, cols;
 	bool ret = !getDimensionsFromFile(NULL, NULL, NULL);
 	ret &= getDimensionsFromFile("C:\\Testdaten\\konv3.csv", &rows, &cols);
 

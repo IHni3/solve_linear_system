@@ -26,7 +26,7 @@
 * Returns
 *			 1. buffer (minimum size of path), when all variables have been validated.
 */
-char* input(const char* text, const char* errortext, char* buffer, const size_t size, bool (*inputIsValid)(const char* c, void* returnValue, int, ...), int num, ...)
+char* userInput(const char* text, const char* errortext, char* buffer, const size_t size, bool (*inputIsValid)(const char* c, void* returnValue, int, ...), int num, ...)
 {
 	bool bRet = false;
 	do
@@ -39,7 +39,7 @@ char* input(const char* text, const char* errortext, char* buffer, const size_t 
 
 		va_list args;
 		va_start(args, num);
-		bRet = inputIsValid(buffer, num, args);
+		bRet = inputIsValid(buffer, (void*) num, args);
 		va_end(args);
 
 		if (!bRet)
@@ -95,7 +95,7 @@ bool inputPath(const char* c, Matrix* pMatrix, Vector* pStartVector, Vector* pRe
 *			   if input (c) is 2.
 *			3: boolean value 'false' otherwise.
 */
-bool inputMode(const char* c, Method* returnValue)
+bool inputMethodValidation(const char* c, Method* returnValue)
 {
 	if (strcmp(c, "1") == 0)
 	{
@@ -177,7 +177,7 @@ int main(const int numberOfArguments, char** argv)
 		pStartVector->n = 0;
 
 		clock_t t2 = startStopwatch();
-		bool bRetX = load("C:\\Testdaten\\konv500.csv", pMatrix, pResultsVector, pStartVector);
+		bool bRetX = load("konv3.csv", pMatrix, pResultsVector, pStartVector);
 		float timediff2 = stopStopwatch(t2);
 		printf("time auslesen: %.2fs\n", timediff2);
 		//solveJacobi(pMatrix, pResultsVector, pStartVector, 0);
@@ -189,15 +189,14 @@ int main(const int numberOfArguments, char** argv)
 		printf("this program solves linear systems of equations with jacobi or gauss-seidel algorithm\n\n");
 
 		char* path = malloc(sizeof(char) * 512);
-		input("please enter file path of linear system (csv): ",
+		userInput("please enter file path of linear system (csv): ",
 			"given path does not exist or file is invalid!\n", path,
 			512, inputPath, pMatrix, pResultsVector, pStartVector);		
 
-		char pInputMode[2];
-		Method inputMethod;
-		input("iteration method:\n1. jacobi\n2. gauss-seidel\n\n",
-			"", pInputMode,
-			2, inputMode, &inputMethod);
+		char pInputMethodBuffer[1];
+		Method chosenInputMethod;
+		userInput("iteration method:\n1. jacobi\n2. gauss-seidel\n\n", "",
+			  pInputMethodBuffer, sizeof(pInputMethodBuffer), inputMethodValidation, &chosenInputMethod);
 
 		
 		

@@ -21,13 +21,13 @@ typedef enum
 	JACOBI = 0, GAUSS_SEIDEL = 1
 } Method;
 
-bool currentFieldToNumber(const char* field, const int nSize, double* result);
-bool initVector(Vector* vector, const int nSize);
-bool initMatrix(Matrix* pMatrix, const int nSize);
-bool getDimensionsFromFile(const char* cFilename, int* nRows, int* nCols);
-bool interpretateDimensions(const int nRows, const int nCols, int* nCoefficients, bool* bResults, bool* bStartVector);
-bool insertMatrix(const Matrix* matrix, const int nRow, const int nCol, const char* field, const int nSize);
-bool insertVector(const Vector* vector, const int n, const char* field, const int nSize);
+bool currentFieldToNumber(const char* field, const uint32_t nSize, double* result);
+bool initVector(Vector* vector, const uint32_t nSize);
+bool initMatrix(Matrix* pMatrix, const uint32_t nSize);
+bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCols);
+bool interpretateDimensions(const uint32_t nRows, const uint32_t nCols, uint32_t* nCoefficients, bool* bResults, bool* bStartVector);
+bool insertMatrix(const Matrix* matrix, const uint32_t nRow, const uint32_t nCol, const char* field, const uint32_t nSize);
+bool insertVector(const Vector* vector, const uint32_t n, const char* field, const uint32_t nSize);
 bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Vector* pStartVector);
 bool load(const char* cfilename, Matrix* A, Vector* b, Vector* x);
 //void solve(Method method, Matrix* A, Vector* b, Vector* x, double e)

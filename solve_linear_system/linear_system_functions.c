@@ -1,6 +1,36 @@
 #include "linear_system_functions.h"
 #include <stdlib.h>
 #include <math.h>
+#include <ctype.h>
+#include <string.h>
+
+/*  
+*Function: addNullTermination
+*--------------------
+* Adds \0 character to a char pointer at the give position. 
+* The purpose is to terminate the string
+*
+* Arguments
+*			 field:			Char pointer containing a string 
+*			 pos:			position where the termination is set
+*
+* Returns
+*			 1. boolean value 'true', when all variables have been validated.
+*			 2. boolean value 'false' otherwise.
+*/
+bool addNullTermination(char* field, const uint32_t pos)
+{
+	bool bRet = true;
+	if(field != NULL && pos >= 0)
+	{
+		field[pos] = '\0';
+	}
+	else
+	{
+		bRet = false;
+	}
+	return bRet;	
+}
 
 
 /*  
@@ -21,31 +51,22 @@
 *			 1. boolean value 'true', when all variables have been validated.
 *			 2. boolean value 'false' otherwise.
 */
-bool currentFieldToNumber(const char* field, const int nSize, double* result)
+bool currentFieldToNumber(const char* field, const uint32_t nSize, double* result)
 {
 	bool bRet = true;
 
 	if (field != NULL && nSize > 0)
 	{
-		char* str = (char*)malloc(sizeof(char) * (nSize + 1));
-		if (str != NULL)
+		for (const char* current = field; *current != '\0' && bRet == true; current++)
 		{
-			memcpy(str, field, sizeof(char) * nSize);
-			str[nSize] = '\0';
-
-			for (char* current = str; *current != '\0' && bRet == true; current++)
+			if (isdigit(*current) == 0 && *current != '.')
 			{
-				if (isdigit(*current) == 0 && *current != '.')
-				{
-					bRet = false;
-				}
+				bRet = false;
 			}
-
-			double num = atof(str);
-			*result = num;
 		}
 
-		free(str);
+		double num = atof(field);
+		*result = num;
 	}
 
 	else
@@ -71,7 +92,7 @@ bool currentFieldToNumber(const char* field, const int nSize, double* result)
 *				and thus the vector was initialized successfully.
 *			 2. boolean value 'false' otherwise.
 */
-bool initVector(Vector* vector, const int nSize)
+bool initVector(Vector* vector, const uint32_t nSize)
 {
 	bool bRet = false;
 
@@ -106,15 +127,15 @@ bool initVector(Vector* vector, const int nSize)
 *				and thus the matrix was initialized successfully.
 *			 2. boolean value 'false' otherwise.
 */
-bool initMatrix(Matrix* pMatrix, const int nSize)
+bool initMatrix(Matrix* pMatrix, const uint32_t nSize)
 {
 	bool bRet = true;
 
 	if (pMatrix != NULL && nSize > 0)
 	{
 
-		const int nRows = nSize;
-		const int nColumns = nSize;
+		const uint32_t nRows = nSize;
+		const uint32_t nColumns = nSize;
 
 		pMatrix->data = (double**)malloc(nRows * sizeof(double*));
 
@@ -122,12 +143,12 @@ bool initMatrix(Matrix* pMatrix, const int nSize)
 
 		if (pMatrix->data != NULL)
 		{
-			for (int i = 0; i < nRows; i++)
+			for (uint32_t i = 0; i < nRows; i++)
 			{
 				pMatrix->data[i] = (double*)malloc(nColumns * sizeof(double));
 				//printf("initMatrix: row number %d created: 0x%p to 0x%p\n", i, pMatrix->data[i], pMatrix->data[i] + nColumns * sizeof(double));
 				//test init data
-				for (int y = 0; y < nColumns; y++)
+				for (uint32_t y = 0; y < nColumns; y++)
 				{
 					//printf("initMatrix: accessing [%d][%d] 0x%p\n", i, y, pMatrix->data[i] + y * sizeof(double));
 				}
@@ -170,7 +191,7 @@ bool initMatrix(Matrix* pMatrix, const int nSize)
 *				and the correct size of vertical and horizontal 
 *			 2. boolean value 'false' otherwise.
 */
-bool getDimensionsFromFile(const char* cFilename, int* nRows, int* nCols)
+bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCols)
 {
 	bool bRet = false;
 
@@ -183,7 +204,7 @@ bool getDimensionsFromFile(const char* cFilename, int* nRows, int* nCols)
 			*nRows = 0;
 			*nCols = 0;
 
-			int nLastCols = -1;
+			uint32_t nLastCols = -1;
 
 			bool bIterationSuccess = true;
 			char c;
@@ -200,7 +221,7 @@ bool getDimensionsFromFile(const char* cFilename, int* nRows, int* nCols)
 
 					if (nLastCols != -1 && *nCols != nLastCols)
 					{
-						//TODO print invalid file
+						//TODO pruint32_t invalid file
 						bIterationSuccess = false;
 					}
 
@@ -246,7 +267,7 @@ bool getDimensionsFromFile(const char* cFilename, int* nRows, int* nCols)
 *				and one of the specifications matches. 
 *			 2. boolean value 'false' otherwise.
 */
-bool interpretateDimensions(const int nRows, const int nCols, int* nCoefficients, bool* bResults, bool* bStartVector)
+bool interpretateDimensions(const uint32_t nRows, const uint32_t nCols, uint32_t* nCoefficients, bool* bResults, bool* bStartVector)
 {
 	bool bRet = false;
 
@@ -299,7 +320,7 @@ bool interpretateDimensions(const int nRows, const int nCols, int* nCoefficients
 *				and the matrix has been successfully filled with verified digits only.
 *			 2. boolean value 'false' otherwise.
 */
-bool insertMatrix(const Matrix* matrix, const int nRow, const int nCol, const char* field, const int nSize)
+bool insertMatrix(const Matrix* matrix, const uint32_t nRow, const uint32_t nCol, const char* field, const uint32_t nSize)
 {
 	double num = 0;
 	bool bRet = currentFieldToNumber(field, nSize, &num);
@@ -336,7 +357,7 @@ bool insertMatrix(const Matrix* matrix, const int nRow, const int nCol, const ch
 *				and the vector has been successfully filled with verified digits only.
 *			 2. boolean value 'false' otherwise.
 */
-bool insertVector(const Vector* vector, const int n, const char* field, const int nSize)
+bool insertVector(const Vector* vector, const uint32_t n, const char* field, const uint32_t nSize)
 {
 	double num = 0;
 	bool bRet = currentFieldToNumber(field, nSize, &num);
@@ -378,11 +399,13 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 
 		unsigned long ulSize = 0;  // Input File size
 
-		int rows = 0, cols = 0;
+		uint32_t rows = 0, cols = 0;
 		getDimensionsFromFile(cFilename, &rows, &cols);
-		int nCoefficients = 0;
+		printf("getDimensionsFromFile: rows=%d cols=%d\n",rows,cols);
+		uint32_t nCoefficients = 0;
 		bool bResultsVector, bStartVector;
 		interpretateDimensions(rows, cols, &nCoefficients, &bResultsVector, &bStartVector);
+		printf("interpretateDimensions: nCoefficients=%d bResultsVector=%d bStartVector=%d\n",nCoefficients,bResultsVector,bStartVector);
 
 		//pResultsVector = (Vector*)malloc(sizeof(*pResultsVector));;
 		if (bResultsVector)
@@ -423,7 +446,7 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 				c = (char)fgetc(fpInputFile);
 				//printf("found %c\n", c);
 
-				if (nCharCount >= nFieldSize)
+				if (nCharCount + 1 >= nFieldSize) //da falls das feld abgeschlossen ist (newline oder delimiter) noch die null terminirung hinzugefügt wird
 				{
 					nFieldSize += 3;
 					char* field = (char*)realloc(currentField, nFieldSize);
@@ -432,16 +455,23 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 
 				if (c == delimiter || c == newline)
 				{
+					//printf("before currentField=%s\n", currentField);
+					bool success = addNullTermination(currentField, nCharCount);
+
+					//printf("currentField=%s\n", currentField);
+
 					if (nFieldCount < pMatrix->n)
-						insertMatrix(pMatrix, nLineCount, nFieldCount, currentField, nCharCount);
+						insertMatrix(pMatrix, nLineCount, nFieldCount, currentField, nCharCount); //TODO Returnvalue
 					else if (bResultsVector == true && nFieldCount == pMatrix->n)
 					{
-						insertVector(pResultsVector, nLineCount, currentField, nCharCount);
+						insertVector(pResultsVector, nLineCount, currentField, nCharCount); //TODO Returnvalue
 					}
 					else if (bStartVector == true && nFieldCount == pMatrix->n + 1)
 					{
-						insertVector(pStartVector, nLineCount, currentField, nCharCount);
+						insertVector(pStartVector, nLineCount, currentField, nCharCount); //TODO Returnvalue
 					}
+
+					memset(currentField, ' ', nFieldSize);
 
 					if (c == delimiter)
 					{
@@ -511,13 +541,13 @@ bool load(const char* cfilename, Matrix* A, Vector* b, Vector* x)
 *			 1. boolean value 'true', when the result was calculated successfully.
 *			 2. boolean value 'false' otherwise.
 */
-bool vectorAbs(const double* a, const double* b, const int nSize, double* result)
+bool vectorAbs(const double* a, const double* b, const uint32_t nSize, double* result)
 {				
 	//TODO @Tim : Ich weiß dass wir prüfen wollen, ob man überhaupt einen Betrag berechnen kann, aber wie bekommen wir den Wert dann hier raus?
 	if (a && b && result)
 	{
 		double value = 0;
-		for (int i = 0; i < nSize; i++)
+		for (uint32_t i = 0; i < nSize; i++)
 		{
 			value += fabs(a[i] - b[i]);
 		}
@@ -548,12 +578,12 @@ bool vectorAbs(const double* a, const double* b, const int nSize, double* result
 */
 void solveJacobi(Matrix* pa, Vector* pb, Vector* px, double acc)
 {
-	const int n = pa->n;
+	const uint32_t n = pa->n;
 
 	if (px->n <= 0)
 	{
 		initVector(px, n);
-		for (int i = 0; i < n; i++)
+		for (uint32_t i = 0; i < n; i++)
 		{
 			px->data[i] = 0;
 		}
@@ -566,26 +596,26 @@ void solveJacobi(Matrix* pa, Vector* pb, Vector* px, double acc)
 		return;
 	}
 
-	int iteration = 1;
+	uint32_t iteration = 1;
 	double d;
 	double precision = -1;     // @Tim : Verstehe nicht wie du "precision" verwenden willst
-	for (int i = 0; i < n; i++)
+	for (uint32_t i = 0; i < n; i++)
 	{
 		printf("b[%d]-value is : %d \n", i, pb->data[i]);
 	}
 
-	for (int iteration = 0; iteration < 100 && acc > precision; iteration++)
+	for (uint32_t iteration = 0; iteration < 100 && acc > precision; iteration++)
 	{
 		//copyVector(b, x, dimension);
 
 		double sum;
-		for (int i = 0; i < n; i++)
+		for (uint32_t i = 0; i < n; i++)
 		{
 			sum = 0;
 			double d = pa->data[i][i];
-			//printf("Diagonal X[%d%d] has value of /%f \n", i,i, pa->data[i][i]); 
+			printf("Diagonal X[%d%d] has value of /%f \n", i,i, pa->data[i][i]); 
 
-			for (int j = 0; j < n; j++)
+			for (uint32_t j = 0; j < n; j++)
 			{
 				if (i != j)
 				{
@@ -600,7 +630,7 @@ void solveJacobi(Matrix* pa, Vector* pb, Vector* px, double acc)
 												   //@Tim : Was stellen wir jetzt mit dem Bool an?
 		printf("Iterations: %d, Precision: %.11f\n", iteration, precision);
 
-		for (int i = 1; i <= n; i++)
+		for (uint32_t i = 1; i <= n; i++)
 		{
 			printf("[x%d] = %.5f\n\n", i, px->data[i]);
 		}
@@ -626,12 +656,12 @@ void solveJacobi(Matrix* pa, Vector* pb, Vector* px, double acc)
 void solveGauss(Matrix* pa, Vector* pb, Vector* px, double acc)
 {
 
-	const int n = pa->n;
+	const uint32_t n = pa->n;
 
 	if (px->n <= 0)
 	{
 		initVector(px, n);
-		for (int i = 0; i < n; i++)
+		for (uint32_t i = 0; i < n; i++)
 		{
 			px->data[i] = 0;
 		}
@@ -646,10 +676,10 @@ void solveGauss(Matrix* pa, Vector* pb, Vector* px, double acc)
 	//diccerence between last two resutls
 	double accDiff;
 	//bool for ending do/while
-	int accReached = 0;
+	uint32_t accReached = 0;
 
 	//iteration counter
-	int counter = 0;
+	uint32_t counter = 0;
 
 	//cache for gauss seidl algorithm
 	double d;
@@ -659,16 +689,16 @@ void solveGauss(Matrix* pa, Vector* pb, Vector* px, double acc)
 		counter++;
 
 		//gauss seidl algorithm
-		for (int i = 0; i < n; i++)
+		for (uint32_t i = 0; i < n; i++)
 		{
 			preX[i] = px->data[i];
 		}
 
-		for (int j = 0; j < n; j++)
+		for (uint32_t j = 0; j < n; j++)
 		{
 			d = pb->data[j];
 
-			for (int i = 0; i < n; i++)
+			for (uint32_t i = 0; i < n; i++)
 			{
 				if (j != i)
 				{
@@ -681,7 +711,7 @@ void solveGauss(Matrix* pa, Vector* pb, Vector* px, double acc)
 		}
 
 		//iterate through rows, to ckeck, if accuracy is reached
-		for (int i = 0; i < n; i++) {
+		for (uint32_t i = 0; i < n; i++) {
 
 			//calculate difference btw. last two results
 			accDiff = px->data[i] - preX[i];
@@ -692,9 +722,9 @@ void solveGauss(Matrix* pa, Vector* pb, Vector* px, double acc)
 			if (accDiff > acc) accReached = 0;
 			else accReached = 1;
 		}
-		//print results
-		//printf("%02d: [%.2f] [%.2f] [%.2f]\n", counter, px->data[0], px->data[1], px->data[2]);
-		printf("%02d: [%lf] [%lf] [%lf]\n", counter, px->data[0], px->data[1], px->data[2]);
+		//pruint32_t results
+		printf("%02d: [%.2f] [%.2f] [%.2f]\n", counter, px->data[0], px->data[1], px->data[2]);
+		//printf("%02d: [%lf] [%lf] [%lf]\n", counter, px->data[0], px->data[1], px->data[2]);
 
 	} while (!accReached && counter <= 100);
 }
