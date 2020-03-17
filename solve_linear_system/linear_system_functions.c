@@ -381,7 +381,7 @@ bool insertVector(const Vector* vector, const uint32_t n, const char* field, con
 * Ulitmately initializes the overall linear system of equations.
 *
 * Arguments
-*			 cFilename:		 String containing the relative path to the file.
+*			 cFilename:		 String containing the relative pMatrixth to the file.
 *			 pMatrix:		 A two-dimensional Array consisting of n rows and n lines.
 *			 pResultsVector: Vector containing the results of the linear system of equations.
 *			 pStartVector:	 Vector containing the initial values of the linear system of equations.
@@ -506,7 +506,7 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 * Acts as a wrapper for the function 'readFile'.
 *
 * Arguments
-*			 cFilename:		String containing the relative path to the file.
+*			 cFilename:		String containing the relative pMatrixth to the file.
 *			 A:				A two-dimensional Array consisting of n rows and n lines.
 *			 b:				Vector containing the results of the linear system of equations.
 *			 x:				Vector containing the initial values of the linear system of equations.
@@ -514,16 +514,28 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 * Returns
 *			 1. The return of 'readFile'.
 */
-bool load(const char* cfilename, Matrix* A, Vector* b, Vector* x)
+bool load(const char* cfilename, Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector)
 {
-	return readFile(cfilename, A, b, x);
+	return readFile(cfilename, pMatrix, pResultVector, pStartVector);
 }
 
-//TODO entfernen oder hat diese Funktion später noch einen Nutzen?
-//void solve(Method method, Matrix* A, Vector* b, Vector* x, double e)
-//{
-//
-//}
+VectorLinkedListNode* solve(Method method, Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector, double acc)
+{
+	VectorLinkedListNode* vec = NULL;
+
+	switch (method)
+	{
+		case JACOBI:
+			vec = solveJacobi(pMatrix, pResultVector, pStartVector, acc);
+			break;
+		
+		case GAUSS_SEIDEL:
+			vec = solveGauss(pMatrix, pResultVector, pStartVector, acc);
+			break;
+	}
+
+	return vec;
+}
 
 
 /*  
@@ -568,73 +580,98 @@ bool vectorAbs(const double* a, const double* b, const uint32_t nSize, double* r
 * Calculates the linear system equation based on the jacobi iteration method.
 *
 * Arguments
-*			 pa:		A matrix with n rows and n lines.
-*			 pb:		The starting vectors.
-*			 px: 		The resulting vectors.
+*			 pMatrix:		A matrix with n rows and n lines.
+*			 pResultVector:		The starting vectors.
+*			 pStartVector: 		The resulting vectors.
 *			 acc:		The accuracy of the calculation.
 *
 * Returns
 *			 None.
 */
-void solveJacobi(Matrix* pa, Vector* pb, Vector* px, double acc)
+VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector, const double acc)
 {
-	const uint32_t n = pa->n;
+	VectorLinkedListNode* startNode = (VectorLinkedListNode*)malloc(sizeof(*startNode));
 
-	if (px->n <= 0)
+	if(startNode && pMatrix && pResultVector && pStartVector && acc >= 0)
 	{
-		initVector(px, n);
-		for (uint32_t i = 0; i < n; i++)
+		const uint32_t n = pMatrix->n;
+
+		if (pStartVector->n <= 0)
 		{
-			px->data[i] = 0;
-		}
-	}
-
-	//cache for old x Values for checking difference
-	double* preX = (double*)malloc(sizeof(double) * n);
-	if (preX == NULL)
-	{
-		return;
-	}
-
-	uint32_t iteration = 1;
-	double d;
-	double precision = -1;     // @Tim : Verstehe nicht wie du "precision" verwenden willst
-	for (uint32_t i = 0; i < n; i++)
-	{
-		printf("b[%d]-value is : %d \n", i, pb->data[i]);
-	}
-
-	for (uint32_t iteration = 0; iteration < 100 && acc > precision; iteration++)
-	{
-		//copyVector(b, x, dimension);
-
-		double sum;
-		for (uint32_t i = 0; i < n; i++)
-		{
-			sum = 0;
-			double d = pa->data[i][i];
-			printf("Diagonal X[%d%d] has value of /%f \n", i,i, pa->data[i][i]); 
-
-			for (uint32_t j = 0; j < n; j++)
+			initVector(pStartVector, n);
+			for (uint32_t i = 0; i < n; i++)
 			{
-				if (i != j)
-				{
-					sum += pa->data[i][j] * preX[j];
-				}
+				pStartVector->data[i] = 0;
 			}
-			px->data[i] = 1 / d * sum;
 		}
-		double precision = 0;			//@Tim: siehe oben
 
-		vectorAbs(preX, px->data, n, &precision); //TODO: rueckgabewert pruefen
-												   //@Tim : Was stellen wir jetzt mit dem Bool an?
-		printf("Iterations: %d, Precision: %.11f\n", iteration, precision);
-
-		for (uint32_t i = 1; i <= n; i++)
+		//TODO auf VECTOR umstellen
+		//cache for old x Values for checking difference
+		double* preX = (double*)malloc(sizeof(double) * n);
+		if (preX == NULL)
 		{
-			printf("[x%d] = %.5f\n\n", i, px->data[i]);
+			return;
 		}
+
+		uint32_t iteration = 0;
+		double d;
+		double curAcc = -1;
+		for (uint32_t i = 0; i < n; i++)
+		{
+			printf("b[%d]-value is : %d \n", i, pResultVector->data[i]);
+		}
+
+		VectorLinkedListNode* curNode = startNode;
+		for (uint32_t iteration = 0; iteration < NUMBER_OF_ITERATIONS && acc > curAcc; iteration++)
+		{
+			for (uint32_t i = 0; i < n; i++)
+			{
+				preX[i] = pStartVector->data[i];
+			}
+
+			double sum;
+			for (uint32_t i = 0; i < n; i++)
+			{
+				sum = 0;
+				double d = pMatrix->data[i][i];
+				printf("Diagonal X[%d%d] has value of /%f \n", i,i, pMatrix->data[i][i]); 
+
+				for (uint32_t j = 0; j < n; j++)
+				{
+					if (i != j)
+					{
+						sum += pMatrix->data[i][j] * preX[j];
+					}
+				}
+				pStartVector->data[i] = 1 / d * sum;
+			}
+
+			vectorAbs(preX, pStartVector->data, n, &curAcc); //TODO: rueckgabewert pruefen
+
+//TODO rückgabewert
+			initVector(curNode->vector, n);
+			memcpy(curNode->vector, pStartVector, sizeof(pStartVector));
+			curNode->next = (VectorLinkedListNode*)malloc(sizeof(VectorLinkedListNode)); //TODO auf null prüfen
+			curNode = curNode->next;
+			curNode->next = NULL;
+			curNode->vector = NULL;
+
+			printf("Iterations: %d, curAcc: %.11f\n", iteration, curAcc);
+
+			//for (uint32_t i = 1; i <= n; i++)
+			//{
+			//	printf("[x%d] = %.5f\n\n", i, pStartVector->data[i]);
+			//}
+		}
+
 	}
+	else
+	{
+		free(startNode);
+		startNode = NULL;
+	}
+
+	return startNode;
 }
 
 
@@ -645,25 +682,25 @@ void solveJacobi(Matrix* pa, Vector* pb, Vector* px, double acc)
 * Calculates the linear system equation based on the gauss-seidel iteration method.
 *
 * Arguments
-*			 pa:		A matrix with n rows and n lines.
-*			 pb:		The starting vectors.
-*			 px: 		The resulting vectors.
+*			 pMatrix:		A matrix with n rows and n lines.
+*			 pResultVector:		The starting vectors.
+*			 pStartVector: 		The resulting vectors.
 *			 acc:		The accuracy of the calculation.
 *
 * Returns
 *			 None.
 */
-void solveGauss(Matrix* pa, Vector* pb, Vector* px, double acc)
+VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector, const double acc)
 {
 
-	const uint32_t n = pa->n;
+	const uint32_t n = pMatrix->n;
 
-	if (px->n <= 0)
+	if (pStartVector->n <= 0)
 	{
-		initVector(px, n);
+		initVector(pStartVector, n);
 		for (uint32_t i = 0; i < n; i++)
 		{
-			px->data[i] = 0;
+			pStartVector->data[i] = 0;
 		}
 	}
 
@@ -691,22 +728,22 @@ void solveGauss(Matrix* pa, Vector* pb, Vector* px, double acc)
 		//gauss seidl algorithm
 		for (uint32_t i = 0; i < n; i++)
 		{
-			preX[i] = px->data[i];
+			preX[i] = pStartVector->data[i];
 		}
 
 		for (uint32_t j = 0; j < n; j++)
 		{
-			d = pb->data[j];
+			d = pResultVector->data[j];
 
 			for (uint32_t i = 0; i < n; i++)
 			{
 				if (j != i)
 				{
 
-					d -= pa->data[j][i] * px->data[i];
+					d -= pMatrix->data[j][i] * pStartVector->data[i];
 				}
 
-				px->data[j] = d / pa->data[j][j]; //Hauptdiagonale
+				pStartVector->data[j] = d / pMatrix->data[j][j]; //Hauptdiagonale
 			}
 		}
 
@@ -714,7 +751,7 @@ void solveGauss(Matrix* pa, Vector* pb, Vector* px, double acc)
 		for (uint32_t i = 0; i < n; i++) {
 
 			//calculate difference btw. last two results
-			accDiff = px->data[i] - preX[i];
+			accDiff = pStartVector->data[i] - preX[i];
 			//turn negative difference, positive for ckecking 
 			if (accDiff < 0) accDiff *= -1;
 
@@ -723,10 +760,12 @@ void solveGauss(Matrix* pa, Vector* pb, Vector* px, double acc)
 			else accReached = 1;
 		}
 		//pruint32_t results
-		printf("%02d: [%.2f] [%.2f] [%.2f]\n", counter, px->data[0], px->data[1], px->data[2]);
-		//printf("%02d: [%lf] [%lf] [%lf]\n", counter, px->data[0], px->data[1], px->data[2]);
+		printf("%02d: [%.2f] [%.2f] [%.2f]\n", counter, pStartVector->data[0], pStartVector->data[1], pStartVector->data[2]);
+		//printf("%02d: [%lf] [%lf] [%lf]\n", counter, pStartVector->data[0], pStartVector->data[1], pStartVector->data[2]);
 
-	} while (!accReached && counter <= 100);
+	} while (!accReached && counter <= NUMBER_OF_ITERATIONS);
+
+	return NULL;
 }
 
 /*
