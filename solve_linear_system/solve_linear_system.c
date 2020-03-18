@@ -7,6 +7,23 @@
 #include "linear_system_functions.h"
 //#include "test.h"
 
+#ifdef _MSC_VER
+#pragma warning(disable:4996)
+#endif
+
+
+/*
+*Function: cleanInputBuffer
+*--------------------
+* keine Referenzierung
+*/
+void clearInputBuffer()
+{
+	int i = 0;
+	//while(getchar() != EOF);
+}
+
+
 
 /*  
 *Function: inputMode
@@ -65,13 +82,13 @@ bool inputMethodValidation(const int32_t input, Method* returnValue)
 *			 1. boolean value 'true', when given path exists, file is readable and valid.
 *			 2. boolean value 'false' otherwise.
 */
-bool userInputFileValidation(const char* path, Matrix* pMatrix, Vector* pStartVector, Vector* pResultsVector)
+bool userInputFileValidation(const char* path, Matrix* pMatrix, Vector* pResultsVector, Vector* pStartVector)
 {
-	return load(path, pMatrix, pStartVector, pResultsVector);
+	return load(path, pMatrix, pResultsVector,  pStartVector);
 }
 
 
-const char* userInputPath(Matrix* pMatrix, Vector* pResultsVector,Vector* pStartVector)
+void userInputPath(Matrix* pMatrix, Vector* pResultsVector,Vector* pStartVector)
 {
 	bool bRet = false;
 	char* buffer = malloc(sizeof(char) * 1024);
@@ -82,13 +99,11 @@ const char* userInputPath(Matrix* pMatrix, Vector* pResultsVector,Vector* pStart
 
 		printf("%s", buffer);
 		clearInputBuffer();
-		printf("clearInputBuffer();");
 
-		bRet = userInputFileValidation(buffer, pMatrix, pStartVector, pResultsVector);
-		printf("userInputFileValidation(buffer, pMatrix, pStartVector, pResultsVector);");
+		bRet = userInputFileValidation(buffer, pMatrix, pResultsVector, pStartVector);
 
 		if(!bRet)
-			printf("given path does not exist or file is invalid!\n");
+			printf("given path does not exist or file is invalid!\n\n");
 
 	} while (!bRet);
 }
@@ -97,55 +112,125 @@ Method userInputMethod()
 {
 	bool bRet = false;
 	
-	int32_t input;
+	int32_t input = 0;
+	Method method;
 	do
 	{
 		printf("iteration method:\n1. jacobi\n2. gauss-seidel\n\n");
-		scanf("%d", input);
+		scanf("%d", &input);
 		clearInputBuffer();
 
-		Method method;
+		
 		bRet = inputMethodValidation(input, &method);
 
 		if(!bRet)
-			printf("input is invalid!\n");
+			printf("input is invalid!\n\n");
 
 	} while (!bRet);
+
+	return method;
+}
+
+bool userInputPrintResults()
+{
+	bool bRet = false;
+
+	int32_t input = 0;
+	Method method;
+	do
+	{
+		printf("results:\n1. print all results\n2. print only last result\n\n");
+		scanf("%d", &input);
+		clearInputBuffer();
+
+
+		bRet = input == 1 || input == 2;
+
+		if (!bRet)
+			printf("input is invalid!\n\n");
+
+	} while (!bRet);
+
+	return input == 1;
+}
+
+bool userInputNewCalcOrExit()
+{
+	bool bRet = false;
+
+	int32_t input = 0;
+	Method method;
+	do
+	{
+		printf("1. start new calculation\n2. exit program\n\n");
+		scanf("%d", &input);
+		clearInputBuffer();
+
+
+		bRet = input == 1 || input == 2;
+
+		if (!bRet)
+			printf("input is invalid!\n\n");
+
+	} while (!bRet);
+
+	return input == 2; //user wants to Exit
 }
 
 double userInputAccuracy()
 {
 	bool bRet = false;
 	
-	double inputAcc;
+	double inputAcc = 0.f;
 	do
 	{
 		printf("accuracy: ");
-		scanf("%lf", inputAcc);
+		scanf("%lf", &inputAcc);
 		clearInputBuffer();
 
 		bRet = inputAcc >= 0;
 
 		if(!bRet)
-			printf("given accuracy is invalid. Value has to be equal or bigger then zero!\n");
+			printf("given accuracy is invalid. Value has to be equal or bigger then zero!\n\n");
 
 	} while (!bRet);
 }
 
-
-
-
-
-
-
-/*
-*Function: cleanInputBuffer
-*--------------------	
-* keine Referenzierung
-*/
-void clearInputBuffer()
+void printCurrentNode(const VectorLinkedListNode* node)
 {
-	//while(getchar() != EOF);
+	if (node && node->vector)
+		for (int i = 0; i < node->vector->n; i++)
+			printf("[%.10lf] ", node->vector->data[i]);
+}
+
+printResults(const VectorLinkedListNode* pResults)
+{
+	if (pResults)
+	{
+		uint32_t count = 1;
+		for (const VectorLinkedListNode* it = pResults; it != NULL; it = it->next)
+		{
+			printf("%d:", count);
+			printCurrentNode(it);
+			printf("\n");
+
+			count++;
+		}
+	}
+}
+printLastResult(const VectorLinkedListNode* pResults)
+{
+	if (pResults)
+	{
+		//Find last Node
+		const VectorLinkedListNode* node = pResults;
+		while (node->next != NULL)
+		{
+			node = node->next;
+		}
+
+		printCurrentNode(node);
+	}
 }
 
 
@@ -166,6 +251,9 @@ void clearInputBuffer()
 int main(const int numberOfArguments, char** argv)
 {
 	//testAll();
+	bool bUserExit = false;
+	do
+	{
 
 		Matrix* pMatrix = (Matrix*)malloc(sizeof(*pMatrix));
 		Vector* pResultsVector = (Vector*)malloc(sizeof(*pResultsVector));
@@ -173,25 +261,21 @@ int main(const int numberOfArguments, char** argv)
 
 		//TODO auf nullptr prüfen
 
-		//TODO remove later produces error if not
-		pResultsVector->n = 0;
-		pStartVector->n = 0;
-
 		printf("this program solves linear systems of equations with jacobi or gauss-seidel algorithm\n\n");
 
-		const char* filepath = userInputPath(pMatrix, pResultsVector, pStartVector);
+		userInputPath(pMatrix, pResultsVector, pStartVector);
 		Method method = userInputMethod();
 		double acc = userInputAccuracy();
 
-		VectorLinkedListNode* result = solve(method, pMatrix, pResultsVector, pStartVector, acc); //TODO auf rückgabewert prüfen
+		VectorLinkedListNode* results = solve(method, pMatrix, pResultsVector, pStartVector, acc); //TODO auf rückgabewert prüfen
 
-		for(VectorLinkedListNode* it = result; it != NULL; it = it->next)
-		{
-			for(int i = 0; i < it->vector->n; i++)
-				printf("[%lf] ", it->vector->data[i]);
-		}
+		bool bPrintAll = userInputPrintResults();
+		if (bPrintAll)
+			printResults(results);
+		else
+			printLastResult(results);
 
-		
+		bUserExit = userInputNewCalcOrExit();
 		
 		//Cleanup
 		free(pMatrix);
@@ -200,4 +284,7 @@ int main(const int numberOfArguments, char** argv)
 		pResultsVector = NULL;
 		free(pStartVector);
 		pStartVector = NULL;
+
+
+	} while (!bUserExit);
 }

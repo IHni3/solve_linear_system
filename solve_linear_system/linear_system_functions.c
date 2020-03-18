@@ -4,6 +4,10 @@
 #include <ctype.h>
 #include <string.h>
 
+#ifdef _MSC_VER
+	#pragma warning(disable:4996)
+#endif
+
 /*  
 *Function: addNullTermination
 *--------------------
@@ -401,22 +405,32 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 
 		uint32_t rows = 0, cols = 0;
 		getDimensionsFromFile(cFilename, &rows, &cols);
-		printf("getDimensionsFromFile: rows=%d cols=%d\n",rows,cols);
+
+
 		uint32_t nCoefficients = 0;
 		bool bResultsVector, bStartVector;
 		interpretateDimensions(rows, cols, &nCoefficients, &bResultsVector, &bStartVector);
-		printf("interpretateDimensions: nCoefficients=%d bResultsVector=%d bStartVector=%d\n",nCoefficients,bResultsVector,bStartVector);
 
 		//pResultsVector = (Vector*)malloc(sizeof(*pResultsVector));;
 		if (bResultsVector)
 		{
-			bool ret1 = initVector(pResultsVector, nCoefficients);
+			bool ret1 = initVector(pResultsVector, nCoefficients); //TODO nullprüfung
+		}
+		else
+		{
+			pResultsVector->n = 0;
+			pResultsVector->data = NULL;
 		}
 
 		//pStartVector = (Vector*)malloc(sizeof(*pStartVector));
 		if (bStartVector)
 		{
-			bool ret2 = initVector(pStartVector, nCoefficients);
+			bool ret2 = initVector(pStartVector, nCoefficients); //TODO null prüfung
+		}
+		else
+		{
+			pStartVector->n = 0;
+			pStartVector->data = NULL;
 		}
 
 
@@ -573,6 +587,40 @@ bool vectorAbs(const double* a, const double* b, const uint32_t nSize, double* r
 }
 
 
+VectorLinkedListNode* addVectorToLinkedList(VectorLinkedListNode* pPrevNode, const Vector* pSaveVector)
+{
+	VectorLinkedListNode* node = NULL;
+	if (pSaveVector)
+	{
+		node = (VectorLinkedListNode*)malloc(sizeof(VectorLinkedListNode));
+
+		if (node)
+		{
+			node->next = NULL;
+			node->vector = (Vector*)malloc(sizeof(Vector));
+			bool bSuccess = initVector(node->vector, pSaveVector->n);
+			if (bSuccess)
+			{
+				node->vector->n = pSaveVector->n;
+				for (int i = 0; i < node->vector->n; i++)
+					node->vector->data[i] = pSaveVector->data[i];
+			}
+
+			if (pPrevNode == NULL) //startNode
+			{
+				return node;
+			}
+			else
+			{
+				pPrevNode->next = node;
+			}
+		}		
+	}
+
+	return node;
+}
+
+
 /*  
 *Function: solveJacobi
 *--------------------
@@ -590,9 +638,10 @@ bool vectorAbs(const double* a, const double* b, const uint32_t nSize, double* r
 */
 VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector, const double acc)
 {
-	VectorLinkedListNode* startNode = (VectorLinkedListNode*)malloc(sizeof(*startNode));
+	
+	VectorLinkedListNode* startNode = NULL;
 
-	if(startNode && pMatrix && pResultVector && pStartVector && acc >= 0)
+	if(pMatrix && pResultVector && pStartVector && acc >= 0)
 	{
 		const uint32_t n = pMatrix->n;
 
@@ -620,8 +669,8 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 		{
 			printf("b[%d]-value is : %d \n", i, pResultVector->data[i]);
 		}
-
-		VectorLinkedListNode* curNode = startNode;
+		
+		VectorLinkedListNode* curNode = NULL;
 		for (uint32_t iteration = 0; iteration < NUMBER_OF_ITERATIONS && acc > curAcc; iteration++)
 		{
 			for (uint32_t i = 0; i < n; i++)
@@ -648,13 +697,15 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 
 			vectorAbs(preX, pStartVector->data, n, &curAcc); //TODO: rueckgabewert pruefen
 
-//TODO rückgabewert
-			initVector(curNode->vector, n);
-			memcpy(curNode->vector, pStartVector, sizeof(pStartVector));
-			curNode->next = (VectorLinkedListNode*)malloc(sizeof(VectorLinkedListNode)); //TODO auf null prüfen
-			curNode = curNode->next;
-			curNode->next = NULL;
-			curNode->vector = NULL;
+			if (curNode == NULL)
+			{
+				startNode = addVectorToLinkedList(curNode, pStartVector);
+				curNode = startNode;
+			}
+			else
+			{
+				curNode->next = addVectorToLinkedList(curNode, pStartVector);
+			}
 
 			printf("Iterations: %d, curAcc: %.11f\n", iteration, curAcc);
 
@@ -664,11 +715,6 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 			//}
 		}
 
-	}
-	else
-	{
-		free(startNode);
-		startNode = NULL;
 	}
 
 	return startNode;
@@ -692,80 +738,94 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 */
 VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector, const double acc)
 {
+	VectorLinkedListNode* pStartNode = NULL;
 
-	const uint32_t n = pMatrix->n;
-
-	if (pStartVector->n <= 0)
+	if (pMatrix && pResultVector && pStartVector && acc >= 0.f)
 	{
-		initVector(pStartVector, n);
-		for (uint32_t i = 0; i < n; i++)
+		const uint32_t n = pMatrix->n;
+
+		if (pStartVector->n <= 0)
 		{
-			pStartVector->data[i] = 0;
-		}
-	}
-
-	//cache for old x Values for checking difference
-	double* preX = (double*)malloc(sizeof(double) * n);
-	if (preX == NULL)
-	{
-		return;
-	}
-	//diccerence between last two resutls
-	double accDiff;
-	//bool for ending do/while
-	uint32_t accReached = 0;
-
-	//iteration counter
-	uint32_t counter = 0;
-
-	//cache for gauss seidl algorithm
-	double d;
-
-	do
-	{
-		counter++;
-
-		//gauss seidl algorithm
-		for (uint32_t i = 0; i < n; i++)
-		{
-			preX[i] = pStartVector->data[i];
-		}
-
-		for (uint32_t j = 0; j < n; j++)
-		{
-			d = pResultVector->data[j];
-
+			initVector(pStartVector, n);
 			for (uint32_t i = 0; i < n; i++)
 			{
-				if (j != i)
-				{
-
-					d -= pMatrix->data[j][i] * pStartVector->data[i];
-				}
-
-				pStartVector->data[j] = d / pMatrix->data[j][j]; //Hauptdiagonale
+				pStartVector->data[i] = 0;
 			}
 		}
 
-		//iterate through rows, to ckeck, if accuracy is reached
-		for (uint32_t i = 0; i < n; i++) {
-
-			//calculate difference btw. last two results
-			accDiff = pStartVector->data[i] - preX[i];
-			//turn negative difference, positive for ckecking 
-			if (accDiff < 0) accDiff *= -1;
-
-			//ckeck difference against accuracy
-			if (accDiff > acc) accReached = 0;
-			else accReached = 1;
+		//cache for old x Values for checking difference
+		double* preX = (double*)malloc(sizeof(double) * n);
+		if (preX == NULL)
+		{
+			return;
 		}
-		//pruint32_t results
-		printf("%02d: [%.2f] [%.2f] [%.2f]\n", counter, pStartVector->data[0], pStartVector->data[1], pStartVector->data[2]);
-		//printf("%02d: [%lf] [%lf] [%lf]\n", counter, pStartVector->data[0], pStartVector->data[1], pStartVector->data[2]);
+		//diccerence between last two resutls
+		double accDiff;
+		//bool for ending do/while
+		uint32_t accReached = 0;
 
-	} while (!accReached && counter <= NUMBER_OF_ITERATIONS);
+		//iteration counter
+		uint32_t counter = 0;
 
-	return NULL;
+		//cache for gauss seidl algorithm
+		double d;
+
+		VectorLinkedListNode* pCurNode = NULL;
+
+		do
+		{
+			counter++;
+
+			//gauss seidl algorithm
+			for (uint32_t i = 0; i < n; i++)
+			{
+				preX[i] = pStartVector->data[i];
+			}
+
+			for (uint32_t j = 0; j < n; j++)
+			{
+				d = pResultVector->data[j];
+
+				for (uint32_t i = 0; i < n; i++)
+				{
+					if (j != i)
+					{
+
+						d -= pMatrix->data[j][i] * pStartVector->data[i];
+					}
+
+					pStartVector->data[j] = d / pMatrix->data[j][j]; //Hauptdiagonale
+				}
+			}
+
+			//iterate through rows, to ckeck, if accuracy is reached
+			for (uint32_t i = 0; i < n; i++) {
+
+				//calculate difference btw. last two results
+				accDiff = pStartVector->data[i] - preX[i];
+				//turn negative difference, positive for ckecking 
+				if (accDiff < 0) accDiff *= -1;
+
+				//ckeck difference against accuracy
+				if (accDiff > acc) accReached = 0;
+				else accReached = 1;
+			}
+
+			if (pCurNode == NULL)
+			{
+				pStartNode = addVectorToLinkedList(pCurNode, pStartVector);
+				pCurNode = pStartNode;
+			}
+			else
+			{
+				pCurNode = addVectorToLinkedList(pCurNode, pStartVector);
+			}
+
+		} while (!accReached && counter <= NUMBER_OF_ITERATIONS);
+
+	}
+
+	return pStartNode;
 }
 
 /*
