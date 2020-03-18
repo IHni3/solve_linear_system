@@ -40,9 +40,9 @@ bool insertMatrix(const Matrix* matrix, const uint32_t nRow, const uint32_t nCol
 bool insertVector(const Vector* vector, const uint32_t n, const char* field, const uint32_t nSize);
 bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Vector* pStartVector);
 bool load(const char* cfilename, Matrix* A, Vector* b, Vector* x);
-VectorLinkedListNode* solve(Method method, Matrix* A, Vector* b, Vector* x, double e);
-VectorLinkedListNode* solveGauss(Matrix* pa, Vector* pb, Vector* px, double acc);
-VectorLinkedListNode* solveJacobi(Matrix* pa, Vector* pb, Vector* px, double acc);
+VectorLinkedListNode* solve(Method method, Matrix* A, Vector* b, Vector* x,const double e);
+VectorLinkedListNode* solveGauss(Matrix* pa, Vector* pb, Vector* px,const double acc);
+VectorLinkedListNode* solveJacobi(Matrix* pa, Vector* pb, Vector* px,const double acc);
 clock_t startStopwatch();
 float stopStopwatch(const clock_t c);
 

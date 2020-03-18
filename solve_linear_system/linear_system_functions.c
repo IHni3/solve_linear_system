@@ -24,15 +24,13 @@
 */
 bool addNullTermination(char* field, const uint32_t pos)
 {
-	bool bRet = true;
-	if(field != NULL && pos >= 0)
+	bool bRet = false;
+	if(field && pos >= 0)
 	{
 		field[pos] = '\0';
+		bRet = true;
 	}
-	else
-	{
-		bRet = false;
-	}
+
 	return bRet;	
 }
 
@@ -59,7 +57,7 @@ bool currentFieldToNumber(const char* field, const uint32_t nSize, double* resul
 {
 	bool bRet = true;
 
-	if (field != NULL && nSize > 0)
+	if (field && nSize > 0 && result)
 	{
 		for (const char* current = field; *current != '\0' && bRet == true; current++)
 		{
@@ -72,7 +70,6 @@ bool currentFieldToNumber(const char* field, const uint32_t nSize, double* resul
 		double num = atof(field);
 		*result = num;
 	}
-
 	else
 	{
 		bRet = false;
@@ -143,19 +140,12 @@ bool initMatrix(Matrix* pMatrix, const uint32_t nSize)
 
 		pMatrix->data = (double**)malloc(nRows * sizeof(double*));
 
-		//printf("initMatrix: matrix created at 0x%p. %d bytes allocated.\n", pMatrix->data, (int)sizeof(pMatrix->data));
-
 		if (pMatrix->data != NULL)
 		{
 			for (uint32_t i = 0; i < nRows; i++)
 			{
 				pMatrix->data[i] = (double*)malloc(nColumns * sizeof(double));
-				//printf("initMatrix: row number %d created: 0x%p to 0x%p\n", i, pMatrix->data[i], pMatrix->data[i] + nColumns * sizeof(double));
-				//test init data
-				for (uint32_t y = 0; y < nColumns; y++)
-				{
-					//printf("initMatrix: accessing [%d][%d] 0x%p\n", i, y, pMatrix->data[i] + y * sizeof(double));
-				}
+				
 				if (pMatrix->data[i] == NULL)
 					bRet = false;
 			}
@@ -208,9 +198,10 @@ bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCo
 			*nRows = 0;
 			*nCols = 0;
 
-			uint32_t nLastCols = -1;
+			uint32_t nLastCols = 0; //cols of the previous iteration
+			bool bFirstIteration = true;
 
-			bool bIterationSuccess = true;
+			bool bSameColumns = true; //checks if there is the same number of columns in each row
 			char c;
 			do
 			{
@@ -222,26 +213,30 @@ bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCo
 				else if (c == '\n')
 				{
 					*nCols = *nCols + 1; //da kein delimiter mehr komm am ende
-
-					if (nLastCols != -1 && *nCols != nLastCols)
+					
+					if (*nCols != nLastCols && bFirstIteration == false)
 					{
 						//TODO pruint32_t invalid file
-						bIterationSuccess = false;
+						bSameColumns = false;
+					}
+					else if(bFirstIteration)
+					{
+						bFirstIteration = false;
 					}
 
 					nLastCols = *nCols;
 					*nCols = 0;
 					*nRows = *nRows + 1;
 				}
-			} while (c != EOF || bIterationSuccess == false);
+			} while (c != EOF || bSameColumns == false);
 
-			bRet = bIterationSuccess;
+			bRet = bSameColumns;
 
-			if (bRet == true)
+			if (bRet == true) //if success set cols
 				*nCols = nLastCols;
 
 			fclose(pReadFileHandle);
-			pReadFileHandle = 0;
+			pReadFileHandle = NULL;
 		}
 	}
 
@@ -277,17 +272,16 @@ bool interpretateDimensions(const uint32_t nRows, const uint32_t nCols, uint32_t
 
 	if (nCoefficients && bResults && bStartVector)
 	{
-		if (nRows > 0 && nCols > 0 && nCols <= nRows + 2)
+		if (nRows > 0 && nCols > 0 && nCols <= nRows + 2) //+2 because of startvector and resultvector
 		{
 			*nCoefficients = nRows;
 
-			//TODO woher weiß man, dass es nicht den Fall gibt, dass Startvektoren aber keine Lösungen gegeben sind?
-			if (nRows == nCols)
+			if (nRows == nCols) //no startvector and resultvector
 			{
 				*bResults = false;
 				*bStartVector = false;
 			}
-			else if (nCols == nRows + 1)
+			else if (nCols == nRows + 1)  //no startvector
 			{
 				*bResults = true;
 				*bStartVector = false;
@@ -327,16 +321,14 @@ bool interpretateDimensions(const uint32_t nRows, const uint32_t nCols, uint32_t
 bool insertMatrix(const Matrix* matrix, const uint32_t nRow, const uint32_t nCol, const char* field, const uint32_t nSize)
 {
 	double num = 0;
-	bool bRet = currentFieldToNumber(field, nSize, &num);
-	if (bRet == true)
+
+	bool bRet = false;
+
+	bool bFieldToNumber = currentFieldToNumber(field, nSize, &num);
+	if (bFieldToNumber && matrix && matrix->data)
 	{
 		matrix->data[nRow][nCol] = num;
-		//printf("matrix.data[%d][%d] = %lf\n", nRow, nCol, num);
-	}
-	//TODO für was das else? bRet = false? Hat dann bei Funktionsaufruf aber kein exception handling...?
-	else
-	{
-		
+		bRet = true;
 	}
 
 	return bRet;
@@ -363,18 +355,19 @@ bool insertMatrix(const Matrix* matrix, const uint32_t nRow, const uint32_t nCol
 */
 bool insertVector(const Vector* vector, const uint32_t n, const char* field, const uint32_t nSize)
 {
-	double num = 0;
-	bool bRet = currentFieldToNumber(field, nSize, &num);
-	if (bRet == true)
-	{
-		vector->data[n] = num;
-		//printf("vector.data[%d] = %lf\n", n, num);
-	}
-	else
-	{
-		//TODO warum ist das else hier?
-	}
+	bool bRet = false;
 
+	if (vector && n >= 0 && field)
+	{
+		double num = 0;
+		bool bFieldToNumber = currentFieldToNumber(field, nSize, &num);
+		if (bFieldToNumber == true)
+		{
+			vector->data[n] = num;
+			bRet = true;
+		}
+	}
+	
 	return bRet;
 }
 
@@ -401,15 +394,13 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 	if (pMatrix && pResultsVector && pStartVector)
 	{
 
-		unsigned long ulSize = 0;  // Input File size
-
 		uint32_t rows = 0, cols = 0;
-		getDimensionsFromFile(cFilename, &rows, &cols);
+		getDimensionsFromFile(cFilename, &rows, &cols); //TODO rückgabewert
 
 
 		uint32_t nCoefficients = 0;
 		bool bResultsVector, bStartVector;
-		interpretateDimensions(rows, cols, &nCoefficients, &bResultsVector, &bStartVector);
+		interpretateDimensions(rows, cols, &nCoefficients, &bResultsVector, &bStartVector); //TODO rückgabewert
 
 		//pResultsVector = (Vector*)malloc(sizeof(*pResultsVector));;
 		if (bResultsVector)
@@ -453,7 +444,7 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 
 
 			//pMatrix = (Matrix*)malloc(sizeof(*pMatrix));
-			initMatrix(pMatrix, nCoefficients);
+			initMatrix(pMatrix, nCoefficients); //TODO Rückgabewert
 
 			do
 			{
@@ -470,7 +461,7 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 				if (c == delimiter || c == newline)
 				{
 					//printf("before currentField=%s\n", currentField);
-					bool success = addNullTermination(currentField, nCharCount);
+					bool success = addNullTermination(currentField, nCharCount); //TODO return value
 
 					//printf("currentField=%s\n", currentField);
 
@@ -485,7 +476,7 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 						insertVector(pStartVector, nLineCount, currentField, nCharCount); //TODO Returnvalue
 					}
 
-					memset(currentField, ' ', nFieldSize);
+					memset(currentField, ' ', nFieldSize); //clear field to erase null termination. because otherwise the values could be shortened
 
 					if (c == delimiter)
 					{
@@ -533,7 +524,7 @@ bool load(const char* cfilename, Matrix* pMatrix, Vector* pResultVector, Vector*
 	return readFile(cfilename, pMatrix, pResultVector, pStartVector);
 }
 
-VectorLinkedListNode* solve(Method method, Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector, double acc)
+VectorLinkedListNode* solve(Method method, Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector,const double acc)
 {
 	VectorLinkedListNode* vec = NULL;
 
@@ -602,7 +593,7 @@ VectorLinkedListNode* addVectorToLinkedList(VectorLinkedListNode* pPrevNode, con
 			if (bSuccess)
 			{
 				node->vector->n = pSaveVector->n;
-				for (int i = 0; i < node->vector->n; i++)
+				for (uint32_t i = 0; i < node->vector->n; i++)
 					node->vector->data[i] = pSaveVector->data[i];
 			}
 
@@ -659,15 +650,15 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 		double* preX = (double*)malloc(sizeof(double) * n);
 		if (preX == NULL)
 		{
-			return;
+			return NULL;
 		}
 
 		uint32_t iteration = 0;
-		double d;
+
 		double curAcc = -1;
 		for (uint32_t i = 0; i < n; i++)
 		{
-			printf("b[%d]-value is : %d \n", i, pResultVector->data[i]);
+			printf("b[%d]-value is : %lf \n", i, pResultVector->data[i]);
 		}
 		
 		VectorLinkedListNode* curNode = NULL;
@@ -746,7 +737,7 @@ VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector*
 
 		if (pStartVector->n <= 0)
 		{
-			initVector(pStartVector, n);
+			initVector(pStartVector, n);  //TODO retval
 			for (uint32_t i = 0; i < n; i++)
 			{
 				pStartVector->data[i] = 0;
@@ -757,7 +748,7 @@ VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector*
 		double* preX = (double*)malloc(sizeof(double) * n);
 		if (preX == NULL)
 		{
-			return;
+			return NULL;
 		}
 		//diccerence between last two resutls
 		double accDiff;

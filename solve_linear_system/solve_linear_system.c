@@ -19,7 +19,7 @@
 */
 void clearInputBuffer()
 {
-	char c;
+	int c;
 	while ((c = getchar()) != '\n' && c != EOF) { }
 }
 
@@ -84,12 +84,10 @@ bool inputMethodValidation(const int32_t input, Method* returnValue)
 */
 bool userInputFileValidation(const char* path, Matrix* pMatrix, Vector* pResultsVector, Vector* pStartVector)
 {
-	bool bRet;
-
 	printf("loading file..\n");
 	const clock_t t1 = startStopwatch();
 		
-	bRet = load(path, pMatrix, pResultsVector, pStartVector);
+	bool bRet = load(path, pMatrix, pResultsVector, pStartVector);
 
 	if (bRet)
 	{
@@ -149,16 +147,12 @@ bool userInputPrintResults()
 	bool bRet = false;
 
 	int32_t input = 0;
-	Method method;
 	do
 	{
 		printf("results:\n1. print all results\n2. print only last result\n\n");
 
 		scanf("%d", &input);
 		clearInputBuffer();
-		
-		
-
 
 		bRet = input == 1 || input == 2;
 
@@ -175,7 +169,6 @@ bool userInputNewCalcOrExit()
 	bool bRet = false;
 
 	int32_t input = 0;
-	Method method;
 	do
 	{
 		printf("1. start new calculation\n2. exit program\n\n");
@@ -216,12 +209,14 @@ double userInputAccuracy()
 			printf("given accuracy is invalid. Value has to be equal or bigger then zero!\n\n");
 
 	} while (!bRet);
+
+	return inputAcc;
 }
 
 void printCurrentNode(const VectorLinkedListNode* node)
 {
 	if (node && node->vector)
-		for (int i = 0; i < node->vector->n; i++)
+		for (uint32_t i = 0; i < node->vector->n; i++)
 			printf("[%.10lf] ", node->vector->data[i]);
 }
 
@@ -275,7 +270,7 @@ void printNewLine()
 *			 None.
 */
 
-int main(const int argc, char** argv)
+int main()
 {
 	//testAll();
 	bool bUserExit = false;
