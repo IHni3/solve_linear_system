@@ -19,8 +19,8 @@
 */
 void clearInputBuffer()
 {
-	int i = 0;
-	//while(getchar() != EOF);
+	char c;
+	while ((c = getchar()) != '\n' && c != EOF) { }
 }
 
 
@@ -84,7 +84,20 @@ bool inputMethodValidation(const int32_t input, Method* returnValue)
 */
 bool userInputFileValidation(const char* path, Matrix* pMatrix, Vector* pResultsVector, Vector* pStartVector)
 {
-	return load(path, pMatrix, pResultsVector,  pStartVector);
+	bool bRet;
+
+	printf("loading file..\n");
+	const clock_t t1 = startStopwatch();
+		
+	bRet = load(path, pMatrix, pResultsVector, pStartVector);
+
+	if (bRet)
+	{
+		const float loadingTimeInS = stopStopwatch(t1);
+		printf("file loaded in %.2fs\n", loadingTimeInS);
+	}
+	
+	return bRet;
 }
 
 
@@ -94,11 +107,10 @@ void userInputPath(Matrix* pMatrix, Vector* pResultsVector,Vector* pStartVector)
 	char* buffer = malloc(sizeof(char) * 1024);
 	do
 	{
-		printf("please enter file path of linear system (csv): ");
+		printf("please enter file path of linear system (csv): ");		
 		scanf("%1023s", buffer);
-
-		printf("%s", buffer);
 		clearInputBuffer();
+		
 
 		bRet = userInputFileValidation(buffer, pMatrix, pResultsVector, pStartVector);
 
@@ -116,9 +128,10 @@ Method userInputMethod()
 	Method method;
 	do
 	{
-		printf("iteration method:\n1. jacobi\n2. gauss-seidel\n\n");
+		printf("iteration method:\n1. jacobi\n2. gauss-seidel\n\n");		
 		scanf("%d", &input);
 		clearInputBuffer();
+		
 
 		
 		bRet = inputMethodValidation(input, &method);
@@ -140,8 +153,11 @@ bool userInputPrintResults()
 	do
 	{
 		printf("results:\n1. print all results\n2. print only last result\n\n");
+
 		scanf("%d", &input);
 		clearInputBuffer();
+		
+		
 
 
 		bRet = input == 1 || input == 2;
@@ -163,8 +179,11 @@ bool userInputNewCalcOrExit()
 	do
 	{
 		printf("1. start new calculation\n2. exit program\n\n");
+
 		scanf("%d", &input);
 		clearInputBuffer();
+		
+		
 
 
 		bRet = input == 1 || input == 2;
@@ -181,12 +200,15 @@ double userInputAccuracy()
 {
 	bool bRet = false;
 	
-	double inputAcc = 0.f;
+	double inputAcc = -1.f;
 	do
 	{
 		printf("accuracy: ");
+
 		scanf("%lf", &inputAcc);
 		clearInputBuffer();
+		
+		
 
 		bRet = inputAcc >= 0;
 
@@ -203,7 +225,7 @@ void printCurrentNode(const VectorLinkedListNode* node)
 			printf("[%.10lf] ", node->vector->data[i]);
 }
 
-printResults(const VectorLinkedListNode* pResults)
+void printResults(const VectorLinkedListNode* pResults)
 {
 	if (pResults)
 	{
@@ -218,7 +240,7 @@ printResults(const VectorLinkedListNode* pResults)
 		}
 	}
 }
-printLastResult(const VectorLinkedListNode* pResults)
+void printLastResult(const VectorLinkedListNode* pResults)
 {
 	if (pResults)
 	{
@@ -231,6 +253,11 @@ printLastResult(const VectorLinkedListNode* pResults)
 
 		printCurrentNode(node);
 	}
+}
+
+void printNewLine()
+{
+	printf("\n");
 }
 
 
@@ -248,43 +275,62 @@ printLastResult(const VectorLinkedListNode* pResults)
 *			 None.
 */
 
-int main(const int numberOfArguments, char** argv)
+int main(const int argc, char** argv)
 {
 	//testAll();
 	bool bUserExit = false;
 	do
 	{
+		printf("this program solves linear systems of equations with jacobi or gauss-seidel algorithm\n\n");
 
 		Matrix* pMatrix = (Matrix*)malloc(sizeof(*pMatrix));
 		Vector* pResultsVector = (Vector*)malloc(sizeof(*pResultsVector));
 		Vector* pStartVector = (Vector*)malloc(sizeof(*pStartVector));
 
-		//TODO auf nullptr prüfen
+		if (pMatrix && pResultsVector && pStartVector)
+		{		
+			userInputPath(pMatrix, pResultsVector, pStartVector);
+			printNewLine();
+			
+			Method method = userInputMethod();
+			printNewLine();
+			
+			double acc = userInputAccuracy();
+			printNewLine();
 
-		printf("this program solves linear systems of equations with jacobi or gauss-seidel algorithm\n\n");
+			printf("solving linear system..\n");
+			const clock_t t1 = startStopwatch();
+			VectorLinkedListNode* results = solve(method, pMatrix, pResultsVector, pStartVector, acc); //TODO auf rückgabewert prüfen		
 
-		userInputPath(pMatrix, pResultsVector, pStartVector);
-		Method method = userInputMethod();
-		double acc = userInputAccuracy();
+			const float solvingTimeInS = stopStopwatch(t1);
+			printf("solved in %.2fs\n", solvingTimeInS);
 
-		VectorLinkedListNode* results = solve(method, pMatrix, pResultsVector, pStartVector, acc); //TODO auf rückgabewert prüfen
+			printNewLine();
 
-		bool bPrintAll = userInputPrintResults();
-		if (bPrintAll)
-			printResults(results);
+			bool bPrintAll = userInputPrintResults();
+			if (bPrintAll)
+				printResults(results);
+			else
+				printLastResult(results);
+
+			printNewLine();
+
+			bUserExit = userInputNewCalcOrExit();
+
+			//Cleanup
+			free(pMatrix);
+			pMatrix = NULL;
+			free(pResultsVector);
+			pResultsVector = NULL;
+			free(pStartVector);
+			pStartVector = NULL;
+
+			printNewLine();
+			printNewLine();
+		}
 		else
-			printLastResult(results);
-
-		bUserExit = userInputNewCalcOrExit();
-		
-		//Cleanup
-		free(pMatrix);
-		pMatrix = NULL;
-		free(pResultsVector);
-		pResultsVector = NULL;
-		free(pStartVector);
-		pStartVector = NULL;
-
-
+		{
+			printf("memory allocation failed! Maybe there is no free RAM left..\n");
+		}
 	} while (!bUserExit);
 }

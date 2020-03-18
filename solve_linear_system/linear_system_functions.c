@@ -854,7 +854,7 @@ clock_t startStopwatch()
 *			 c:			First timestamp (starting value) to calculate the difference.		
 *
 * Returns
-*			 1. The difference between the timestamps as a float.
+*			 1. The difference between the timestamps as a float in seconds.
 */
 float stopStopwatch(const clock_t c)
 {
