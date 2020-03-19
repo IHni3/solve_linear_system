@@ -210,7 +210,7 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 *			 cFilename:		String containing the relative pMatrixth to the file.
 *			 A:				A two-dimensional Array consisting of n rows and n lines.
 *			 b:				Vector containing the results of the linear system of equations.
-*			 x:				Vector containing the initial values of the linear system of equations.
+*			 x:				Vector containing the starting values of the linear system of equations.
 *
 * Returns
 *			 1. The return of 'readFile'.
@@ -234,7 +234,40 @@ bool load(const char* cfilename, Matrix* A, Vector* b, Vector* x);
 */
 bool vectorAbs(const double* a, const double* b, const uint32_t nSize, double* result);
 
+/*  
+*Function: solve
+*--------------------
+* Wrapper acting as a logical switch for 
+* the solving methods (selection between user inputs).
+*
+* Arguments
+*			 method:			An ENUM containing both solving methods 
+*								assigned to distinguishable figures.
+*			 pResultVector:		The resulting vectors.
+*			 pStartVector: 		The starting vectors.
+*			 acc:				The accuracy of the calculation.
+*
+* Returns
+*			 All vectors as a linked list.
+*/
 VectorLinkedListNode* solve(Method method, Matrix* A, Vector* b, Vector* x,const double e);
+
+/*  
+*Function: addVectorToLinkedList
+*--------------------
+* Adds a given vector to a linked list after 
+* validating the initialization.
+*
+* Arguments
+*			 pPrevNode:			The current node of the vector which 
+*								will then be the previous node.
+*			 pSaveVector:		The starting vector of the next node.
+*
+* Returns
+*			 Starting vector of the next node considering the 
+*			 previous node as a node.
+*/
+VectorLinkedListNode* addVectorToLinkedList(VectorLinkedListNode* pPrevNode, const Vector* pSaveVector);
 
 /*  
 *Function: solveGauss
@@ -243,10 +276,10 @@ VectorLinkedListNode* solve(Method method, Matrix* A, Vector* b, Vector* x,const
 * Calculates the linear system equation based on the gauss-seidel iteration method.
 *
 * Arguments
-*			 pMatrix:		A matrix with n rows and n lines.
-*			 pResultVector:		The starting vectors.
-*			 pStartVector: 		The resulting vectors.
-*			 acc:		The accuracy of the calculation.
+*			 pMatrix:			A matrix with n rows and n lines.
+*			 pResultVector:		The resulting vectors.
+*			 pStartVector: 		The starting vectors.
+*			 acc:				The accuracy of the calculation.
 *
 * Returns
 *			 None.
@@ -260,10 +293,10 @@ VectorLinkedListNode* solveGauss(Matrix* pa, Vector* pb, Vector* px,const double
 * Calculates the linear system equation based on the jacobi iteration method.
 *
 * Arguments
-*			 pMatrix:		A matrix with n rows and n lines.
-*			 pResultVector:		The starting vectors.
-*			 pStartVector: 		The resulting vectors.
-*			 acc:		The accuracy of the calculation.
+*			 pMatrix:			A matrix with n rows and n lines.
+*			 pResultVector:		The resulting vectors.
+*			 pStartVector: 		The starting vectors.
+*			 acc:				The accuracy of the calculation.
 *
 * Returns
 *			 None.
@@ -289,7 +322,8 @@ clock_t startStopwatch();
 * Returns the number of clock ticks elapsed since the program was launched.
 *
 * Arguments
-*			 c:			First timestamp (starting value) to calculate the difference.		
+*			 c:					First timestamp (starting value)
+*								to calculate the difference.		
 *
 * Returns
 *			 1. The difference between the timestamps as a float in seconds.
