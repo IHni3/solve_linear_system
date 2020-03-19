@@ -8,6 +8,7 @@
 #pragma warning(disable:4996)
 #endif
 
+
 bool addNullTermination(char* field, const uint32_t pos)
 {
 	bool bRet = false;
@@ -19,7 +20,6 @@ bool addNullTermination(char* field, const uint32_t pos)
 
 	return bRet;
 }
-
 
 
 bool currentFieldToNumber(const char* field, const uint32_t nSize, double* result)
@@ -122,7 +122,7 @@ bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCo
 			*nRows = 0;
 			*nCols = 0;
 
-			uint32_t nLastCols = 0; //cols of the previous iteration
+			uint32_t nLastCols = 0; //columns of the previous iteration
 			bool bFirstIteration = true;
 
 			bool bSameColumns = true; //checks if there is the same number of columns in each row
@@ -136,7 +136,7 @@ bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCo
 				}
 				else if (c == '\n')
 				{
-					*nCols = *nCols + 1; //da kein delimiter mehr komm am ende
+					*nCols = *nCols + 1; //da kein delimiter mehr - kommt am ende
 
 					if (*nCols != nLastCols && bFirstIteration == false)
 					{
@@ -166,7 +166,6 @@ bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCo
 
 	return bRet;
 }
-
 
 
 bool interpretateDimensions(const uint32_t nRows, const uint32_t nCols, uint32_t* nCoefficients, bool* bResults, bool* bStartVector)
@@ -220,7 +219,6 @@ bool insertMatrix(const Matrix* matrix, const uint32_t nRow, const uint32_t nCol
 }
 
 
-
 bool insertVector(const Vector* vector, const uint32_t n, const char* field, const uint32_t nSize)
 {
 	bool bRet = false;
@@ -238,6 +236,7 @@ bool insertVector(const Vector* vector, const uint32_t n, const char* field, con
 
 	return bRet;
 }
+
 
 bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Vector* pStartVector)
 {
@@ -303,11 +302,12 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 				c = (char)fgetc(fpInputFile);
 				//printf("found %c\n", c);
 
-				if (nCharCount + 1 >= nFieldSize) //da falls das feld abgeschlossen ist (newline oder delimiter) noch die null terminirung hinzugefügt wird
+				//da falls das feld abgeschlossen ist (newline oder delimiter) noch die null terminierung hinzugefügt wird
+				if (nCharCount + 1 >= nFieldSize)
 				{
 					nFieldSize += 3;
 					char* field = (char*)realloc(currentField, nFieldSize);
-					currentField = field; //auf null ptr pr�fen
+					currentField = field; //auf null ptr pruefen
 				}
 
 				if (c == delimiter || c == newline)
@@ -380,7 +380,6 @@ VectorLinkedListNode* solve(Method method, Matrix* pMatrix, Vector* pResultVecto
 
 	return vec;
 }
-
 
 
 bool vectorAbs(const double* a, const double* b, const uint32_t nSize, double* result)
@@ -456,7 +455,7 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 		}
 
 		//TODO auf VECTOR umstellen
-		//cache for old x Values for checking difference
+		//cache for old x values for checking difference
 		double* preX = (double*)malloc(sizeof(double) * n);
 		if (preX == NULL)
 		{
@@ -540,7 +539,7 @@ VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector*
 			}
 		}
 
-		//diccerence between last two resutls
+		//difference between last two results
 		double accDiff;
 		//bool for ending do/while
 		bool accReached = false;
@@ -548,7 +547,7 @@ VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector*
 		//iteration counter
 		uint32_t counter = 0;
 
-		//cache for gauss seidl algorithm
+		//cache for gauss seidel algorithm
 		double sum;
 
 		VectorLinkedListNode* pCurNode = NULL;
@@ -570,7 +569,7 @@ VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector*
 				}
 			}
 
-			//iterate through rows, to check, if accuracy is reached
+			//iterate through rows to check, if accuracy is reached
 			for (uint32_t i = 0; i < n; i++)
 			{
 				//calculate difference btw. last two results
@@ -581,7 +580,7 @@ VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector*
 				}
 				accDiff = fabs(pStartVector->data[i] - prevValue);
 
-				//ckeck difference against accuracy
+				//check difference against accuracy
 				if (accDiff > acc)
 				{
 					accReached = false;
