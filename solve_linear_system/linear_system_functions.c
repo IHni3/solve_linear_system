@@ -438,87 +438,90 @@ VectorLinkedListNode* addVectorToLinkedList(VectorLinkedListNode* pPrevNode, con
 
 VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector, const double acc)
 {
+	VectorLinkedListNode* pStartNode = NULL;
 
-	VectorLinkedListNode* startNode = NULL;
-
-	if (pMatrix && pResultVector && pStartVector && acc >= 0)
+	if (pMatrix && pResultVector && pStartVector && acc >= 0.f)
 	{
 		const uint32_t n = pMatrix->n;
 
 		if (pStartVector->n <= 0)
 		{
-			initVector(pStartVector, n);
+			initVector(pStartVector, n);  //TODO retval
 			for (uint32_t i = 0; i < n; i++)
 			{
-				pStartVector->data[i] = 0;
+				pStartVector->data[i] = 0.f;
 			}
 		}
 
-		//TODO auf VECTOR umstellen
-		//cache for old x values for checking difference
-		double* preX = (double*)malloc(sizeof(double) * n);
-		if (preX == NULL)
-		{
-			return NULL;
-		}
+		//difference between last two results
+		double accDiff;
+		//bool for ending do/while
+		bool accReached = false;
 
-		uint32_t iteration = 0;
+		//iteration counter
+		uint32_t counter = 0;
 
-		double curAcc = -1;
-		for (uint32_t i = 0; i < n; i++)
-		{
-			printf("b[%d]-value is : %lf \n", i, pResultVector->data[i]);
-		}
+		//cache for gauss seidel algorithm
+		double sum;
 
-		VectorLinkedListNode* curNode = NULL;
+		VectorLinkedListNode* pCurNode = NULL;
+
 		do
 		{
 			for (uint32_t i = 0; i < n; i++)
 			{
-				preX[i] = pStartVector->data[i];
-			}
-
-			double sum;
-			for (uint32_t i = 0; i < n; i++)
-			{
 				sum = 0;
-				double d = pMatrix->data[i][i];
-				//printf("Diagonal X[%d%d] has value of /%f \n", i,i, pMatrix->data[i][i]); 
 
 				for (uint32_t j = 0; j < n; j++)
 				{
 					if (i != j)
 					{
-						sum = sum - pMatrix->data[i][j] * preX[j];
-					}
+						sum = sum + pMatrix->data[i][j] * pStartVector->data[j];
+					}							
 				}
-				pStartVector->data[i] = sum / pMatrix->data[i][i];
+				pStartVector->data[i] = (pResultVector->data[i] - sum) / pMatrix->data[i][i]; //Hauptdiagonale
 			}
 
-			vectorAbs(preX, pStartVector->data, n, &curAcc); //TODO: rueckgabewert pruefen
-
-			if (curNode == NULL)
+			//iterate through rows to check, if accuracy is reached
+			for (uint32_t i = 0; i < n; i++)
 			{
-				startNode = addVectorToLinkedList(curNode, pStartVector);
-				curNode = startNode;
+				//calculate difference btw. last two results
+				double prevValue = 0;
+				if (pCurNode)
+				{
+					prevValue = pCurNode->vector->data[i];
+				}
+				accDiff = fabs(pStartVector->data[i] - prevValue);
+
+				//check difference against accuracy
+				if (accDiff > acc)
+				{
+					accReached = false;
+					break;
+				}
+				else
+				{
+					accReached = true;
+				}
+			}
+
+			if (pCurNode == NULL)
+			{
+				pStartNode = addVectorToLinkedList(pCurNode, pStartVector);
+				pCurNode = pStartNode;
 			}
 			else
 			{
-				curNode->next = addVectorToLinkedList(curNode, pStartVector);
+				pCurNode = addVectorToLinkedList(pCurNode, pStartVector);
 			}
 
-			printf("Iterations: %d, curAcc: %.11f\n", iteration, curAcc);
-
-			//for (uint32_t i = 1; i <= n; i++)
-			//{
-			//	printf("[x%d] = %.5f\n\n", i, pStartVector->data[i]);
-			//}
-			iteration++;
-		} while (iteration < NUMBER_OF_ITERATIONS && acc > curAcc);
+			counter++;
+			
+		} while (!accReached && counter <= NUMBER_OF_ITERATIONS);
 
 	}
 
-	return startNode;
+	return pStartNode;
 }
 
 
@@ -576,7 +579,7 @@ VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector*
 				double prevValue = 0;
 				if (pCurNode)
 				{
-					pCurNode->vector->data[i];
+					prevValue = pCurNode->vector->data[i];
 				}
 				accDiff = fabs(pStartVector->data[i] - prevValue);
 
@@ -603,6 +606,7 @@ VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector*
 			}
 
 			counter++;
+
 		} while (!accReached && counter <= NUMBER_OF_ITERATIONS);
 
 	}
