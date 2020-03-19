@@ -227,7 +227,7 @@ void printResults(const VectorLinkedListNode* pResults)
 		uint32_t count = 1;
 		for (const VectorLinkedListNode* it = pResults; it != NULL; it = it->next)
 		{
-			printf("%d:", count);
+			printf("%d: ", count);
 			printCurrentNode(it);
 			printf("\n");
 

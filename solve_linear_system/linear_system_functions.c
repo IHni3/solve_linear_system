@@ -5,17 +5,17 @@
 #include <string.h>
 
 #ifdef _MSC_VER
-	#pragma warning(disable:4996)
+#pragma warning(disable:4996)
 #endif
 
-/*  
+/*
 *Function: addNullTermination
 *--------------------
-* Adds \0 character to a char pointer at the give position. 
+* Adds \0 character to a char pointer at the give position.
 * The purpose is to terminate the string
 *
 * Arguments
-*			 field:			Char pointer containing a string 
+*			 field:			Char pointer containing a string
 *			 pos:			position where the termination is set
 *
 * Returns
@@ -25,17 +25,17 @@
 bool addNullTermination(char* field, const uint32_t pos)
 {
 	bool bRet = false;
-	if(field && pos >= 0)
+	if (field && pos >= 0)
 	{
 		field[pos] = '\0';
 		bRet = true;
 	}
 
-	return bRet;	
+	return bRet;
 }
 
 
-/*  
+/*
 *Function: currentFieldToNumber
 *--------------------
 * Takes a single field of type <char pointer> and returns
@@ -43,10 +43,10 @@ bool addNullTermination(char* field, const uint32_t pos)
 * cycling through every character checking with isdigit().
 *
 * Arguments
-*			 field:			Char pointer containing a string consisting of 
+*			 field:			Char pointer containing a string consisting of
 *							a field of the linear system of equations.
 *			 nSize:			Size of the specified field (single chars count, except dots).
-*			 result:		Double pointer as unique identifier of 
+*			 result:		Double pointer as unique identifier of
 *							a to double converted string.
 *
 * Returns
@@ -79,7 +79,7 @@ bool currentFieldToNumber(const char* field, const uint32_t nSize, double* resul
 }
 
 
-/*  
+/*
 *Function: initVector
 *--------------------
 * Initializes a vector as a function of the size of the vector.
@@ -89,7 +89,7 @@ bool currentFieldToNumber(const char* field, const uint32_t nSize, double* resul
 *			 nSize:			Size of the specified vector (single chars count, except dots).
 *
 * Returns
-*			 1. boolean value 'true', when all variables have been validated 
+*			 1. boolean value 'true', when all variables have been validated
 *				and thus the vector was initialized successfully.
 *			 2. boolean value 'false' otherwise.
 */
@@ -113,7 +113,7 @@ bool initVector(Vector* vector, const uint32_t nSize)
 }
 
 
-/*  
+/*
 *Function: initMatrix
 *--------------------
 * Initializes a matrix as a function of the size of the matrix.
@@ -124,7 +124,7 @@ bool initVector(Vector* vector, const uint32_t nSize)
 *							Should be the same for lines and rows (logically).
 *
 * Returns
-*			 1. boolean value 'true', when all variables have been validated 
+*			 1. boolean value 'true', when all variables have been validated
 *				and thus the matrix was initialized successfully.
 *			 2. boolean value 'false' otherwise.
 */
@@ -145,7 +145,7 @@ bool initMatrix(Matrix* pMatrix, const uint32_t nSize)
 			for (uint32_t i = 0; i < nRows; i++)
 			{
 				pMatrix->data[i] = (double*)malloc(nColumns * sizeof(double));
-				
+
 				if (pMatrix->data[i] == NULL)
 					bRet = false;
 			}
@@ -169,10 +169,10 @@ bool initMatrix(Matrix* pMatrix, const uint32_t nSize)
 }
 
 
-/*  
+/*
 *Function: getDimensionsFromFile
 *--------------------
-* Evaluates the actual size of the file containing the 
+* Evaluates the actual size of the file containing the
 * given values for the linear system of equations.
 *
 * Arguments
@@ -181,8 +181,8 @@ bool initMatrix(Matrix* pMatrix, const uint32_t nSize)
 *			 nCols:			Amount of lines of given file
 *
 * Returns
-*			 1. boolean value 'true', when all variables have been validated 
-*				and the correct size of vertical and horizontal 
+*			 1. boolean value 'true', when all variables have been validated
+*				and the correct size of vertical and horizontal
 *			 2. boolean value 'false' otherwise.
 */
 bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCols)
@@ -213,13 +213,13 @@ bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCo
 				else if (c == '\n')
 				{
 					*nCols = *nCols + 1; //da kein delimiter mehr komm am ende
-					
+
 					if (*nCols != nLastCols && bFirstIteration == false)
 					{
 						//TODO pruint32_t invalid file
 						bSameColumns = false;
 					}
-					else if(bFirstIteration)
+					else if (bFirstIteration)
 					{
 						bFirstIteration = false;
 					}
@@ -244,26 +244,26 @@ bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCo
 }
 
 
-/*  
+/*
 *Function: interpretateDimensions
 *--------------------
 * Initializes a vector as a function of the size of the vector. Evaluates if either the
-* linear system of equations contains either a valid amount of starting vectors, 
+* linear system of equations contains either a valid amount of starting vectors,
 * a valid amount of reasonable results, both of which or ultimately none of both.
 *
 * Arguments
 *			 nRows:			Integer containing he amount of lines.
 *			 nCols:			Integer containing the amount of columns.
 *			 nCoefficients:	All values representing the coefficients of the linear
-*							system of equations. These are tested for proportional 
+*							system of equations. These are tested for proportional
 *							length differences (+1) by this method.
-*			 bResults:		Boolean value depending on the presence of 
+*			 bResults:		Boolean value depending on the presence of
 *							already predefined results of the linear system of equations.
 *			 bStartVector:	Boolean value depending on the presence of starting vectors.
 *
 * Returns
-*			 1. boolean value 'true', when all variables have been validated 
-*				and one of the specifications matches. 
+*			 1. boolean value 'true', when all variables have been validated
+*				and one of the specifications matches.
 *			 2. boolean value 'false' otherwise.
 */
 bool interpretateDimensions(const uint32_t nRows, const uint32_t nCols, uint32_t* nCoefficients, bool* bResults, bool* bStartVector)
@@ -299,11 +299,11 @@ bool interpretateDimensions(const uint32_t nRows, const uint32_t nCols, uint32_t
 	return bRet;
 }
 
-/*  
+/*
 *Function: insertMatrix
 *--------------------
 * Acts as a wrapper for the insertion of the matrix.
-* Automatically converts entry in field of matrix to digits 
+* Automatically converts entry in field of matrix to digits
 * (via sub-function) and fills the field after validation.
 *
 * Arguments
@@ -314,7 +314,7 @@ bool interpretateDimensions(const uint32_t nRows, const uint32_t nCols, uint32_t
 *			 nSize:			Integer consisting of the length of the given field.
 *
 * Returns
-*			 1. boolean value 'true', when all variables have been validated 
+*			 1. boolean value 'true', when all variables have been validated
 *				and the matrix has been successfully filled with verified digits only.
 *			 2. boolean value 'false' otherwise.
 */
@@ -335,11 +335,11 @@ bool insertMatrix(const Matrix* matrix, const uint32_t nRow, const uint32_t nCol
 }
 
 
-/*  
+/*
 *Function: insertVector
 *--------------------
 * Acts as a wrapper for the insertion of the vector.
-* Automatically converts entry in field of matrix to digits 
+* Automatically converts entry in field of matrix to digits
 * (via sub-function) and fills the field after validation.
 *
 * Arguments
@@ -349,7 +349,7 @@ bool insertMatrix(const Matrix* matrix, const uint32_t nRow, const uint32_t nCol
 *			 nSize:			Integer consisting of the length of the given field.
 *
 * Returns
-*			 1. boolean value 'true', when all variables have been validated 
+*			 1. boolean value 'true', when all variables have been validated
 *				and the vector has been successfully filled with verified digits only.
 *			 2. boolean value 'false' otherwise.
 */
@@ -367,11 +367,11 @@ bool insertVector(const Vector* vector, const uint32_t n, const char* field, con
 			bRet = true;
 		}
 	}
-	
+
 	return bRet;
 }
 
-/*  
+/*
 *Function: readFile
 *--------------------
 * Reads the file and verifies all inputs with the sub-functions above.
@@ -505,7 +505,7 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 	return bReturn;
 }
 
-/*  
+/*
 *Function: load
 *--------------------
 * Acts as a wrapper for the function 'readFile'.
@@ -524,26 +524,26 @@ bool load(const char* cfilename, Matrix* pMatrix, Vector* pResultVector, Vector*
 	return readFile(cfilename, pMatrix, pResultVector, pStartVector);
 }
 
-VectorLinkedListNode* solve(Method method, Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector,const double acc)
+VectorLinkedListNode* solve(Method method, Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector, const double acc)
 {
 	VectorLinkedListNode* vec = NULL;
 
 	switch (method)
 	{
-		case JACOBI:
-			vec = solveJacobi(pMatrix, pResultVector, pStartVector, acc);
-			break;
-		
-		case GAUSS_SEIDEL:
-			vec = solveGauss(pMatrix, pResultVector, pStartVector, acc);
-			break;
+	case JACOBI:
+		vec = solveJacobi(pMatrix, pResultVector, pStartVector, acc);
+		break;
+
+	case GAUSS_SEIDEL:
+		vec = solveGauss(pMatrix, pResultVector, pStartVector, acc);
+		break;
 	}
 
 	return vec;
 }
 
 
-/*  
+/*
 *Function: vectorAbs
 *--------------------
 * Returns the absolute difference value of two inserts.
@@ -559,7 +559,7 @@ VectorLinkedListNode* solve(Method method, Matrix* pMatrix, Vector* pResultVecto
 *			 2. boolean value 'false' otherwise.
 */
 bool vectorAbs(const double* a, const double* b, const uint32_t nSize, double* result)
-{				
+{
 	//TODO @Tim : Ich weiß dass wir prüfen wollen, ob man überhaupt einen Betrag berechnen kann, aber wie bekommen wir den Wert dann hier raus?
 	if (a && b && result)
 	{
@@ -605,14 +605,14 @@ VectorLinkedListNode* addVectorToLinkedList(VectorLinkedListNode* pPrevNode, con
 			{
 				pPrevNode->next = node;
 			}
-		}		
+		}
 	}
 
 	return node;
 }
 
 
-/*  
+/*
 *Function: solveJacobi
 *--------------------
 * Takes the matrix, resulting vectors and starting vectors as arguments.
@@ -629,10 +629,10 @@ VectorLinkedListNode* addVectorToLinkedList(VectorLinkedListNode* pPrevNode, con
 */
 VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector, const double acc)
 {
-	
+
 	VectorLinkedListNode* startNode = NULL;
 
-	if(pMatrix && pResultVector && pStartVector && acc >= 0)
+	if (pMatrix && pResultVector && pStartVector && acc >= 0)
 	{
 		const uint32_t n = pMatrix->n;
 
@@ -660,9 +660,9 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 		{
 			printf("b[%d]-value is : %lf \n", i, pResultVector->data[i]);
 		}
-		
+
 		VectorLinkedListNode* curNode = NULL;
-		for (uint32_t iteration = 0; iteration < NUMBER_OF_ITERATIONS && acc > curAcc; iteration++)
+		do
 		{
 			for (uint32_t i = 0; i < n; i++)
 			{
@@ -674,16 +674,16 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 			{
 				sum = 0;
 				double d = pMatrix->data[i][i];
-				printf("Diagonal X[%d%d] has value of /%f \n", i,i, pMatrix->data[i][i]); 
+				//printf("Diagonal X[%d%d] has value of /%f \n", i,i, pMatrix->data[i][i]); 
 
 				for (uint32_t j = 0; j < n; j++)
 				{
 					if (i != j)
 					{
-						sum += pMatrix->data[i][j] * preX[j];
+						sum = sum - pMatrix->data[i][j] * preX[j];
 					}
 				}
-				pStartVector->data[i] = 1 / d * sum;
+				pStartVector->data[i] = sum / pMatrix->data[i][i];
 			}
 
 			vectorAbs(preX, pStartVector->data, n, &curAcc); //TODO: rueckgabewert pruefen
@@ -704,7 +704,8 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 			//{
 			//	printf("[x%d] = %.5f\n\n", i, pStartVector->data[i]);
 			//}
-		}
+			iteration++;
+		} while (iteration < NUMBER_OF_ITERATIONS && acc > curAcc);
 
 	}
 
@@ -712,7 +713,7 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 }
 
 
-/*  
+/*
 *Function: solveGauss
 *--------------------
 * Takes the matrix, resulting vectors and starting vectors as arguments.
@@ -740,66 +741,61 @@ VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector*
 			initVector(pStartVector, n);  //TODO retval
 			for (uint32_t i = 0; i < n; i++)
 			{
-				pStartVector->data[i] = 0;
+				pStartVector->data[i] = 0.f;
 			}
 		}
 
-		//cache for old x Values for checking difference
-		double* preX = (double*)malloc(sizeof(double) * n);
-		if (preX == NULL)
-		{
-			return NULL;
-		}
 		//diccerence between last two resutls
 		double accDiff;
 		//bool for ending do/while
-		uint32_t accReached = 0;
+		bool accReached = false;
 
 		//iteration counter
 		uint32_t counter = 0;
 
 		//cache for gauss seidl algorithm
-		double d;
+		double sum;
 
 		VectorLinkedListNode* pCurNode = NULL;
 
 		do
 		{
-			counter++;
-
-			//gauss seidl algorithm
 			for (uint32_t i = 0; i < n; i++)
 			{
-				preX[i] = pStartVector->data[i];
-			}
+				sum = pResultVector->data[i];
 
-			for (uint32_t j = 0; j < n; j++)
-			{
-				d = pResultVector->data[j];
-
-				for (uint32_t i = 0; i < n; i++)
+				for (uint32_t j = 0; j < n; j++)
 				{
-					if (j != i)
+					if (i != j)
 					{
-
-						d -= pMatrix->data[j][i] * pStartVector->data[i];
+						sum = sum - pMatrix->data[i][j] * pStartVector->data[j];
 					}
 
-					pStartVector->data[j] = d / pMatrix->data[j][j]; //Hauptdiagonale
+					pStartVector->data[i] = sum / pMatrix->data[i][i]; //Hauptdiagonale
 				}
 			}
 
-			//iterate through rows, to ckeck, if accuracy is reached
-			for (uint32_t i = 0; i < n; i++) {
-
+			//iterate through rows, to check, if accuracy is reached
+			for (uint32_t i = 0; i < n; i++)
+			{
 				//calculate difference btw. last two results
-				accDiff = pStartVector->data[i] - preX[i];
-				//turn negative difference, positive for ckecking 
-				if (accDiff < 0) accDiff *= -1;
+				double prevValue = 0;
+				if (pCurNode)
+				{
+					pCurNode->vector->data[i];
+				}
+				accDiff = fabs(pStartVector->data[i] - prevValue);
 
 				//ckeck difference against accuracy
-				if (accDiff > acc) accReached = 0;
-				else accReached = 1;
+				if (accDiff > acc)
+				{
+					accReached = false;
+					break;
+				}
+				else
+				{
+					accReached = true;
+				}
 			}
 
 			if (pCurNode == NULL)
@@ -812,6 +808,7 @@ VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector*
 				pCurNode = addVectorToLinkedList(pCurNode, pStartVector);
 			}
 
+			counter++;
 		} while (!accReached && counter <= NUMBER_OF_ITERATIONS);
 
 	}
@@ -842,7 +839,7 @@ clock_t startStopwatch()
 * Returns the number of clock ticks elapsed since the program was launched.
 *
 * Arguments
-*			 c:			First timestamp (starting value) to calculate the difference.		
+*			 c:			First timestamp (starting value) to calculate the difference.
 *
 * Returns
 *			 1. The difference between the timestamps as a float in seconds.
