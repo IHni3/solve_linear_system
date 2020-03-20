@@ -11,6 +11,7 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 #define AT __FILE__ ":" TOSTRING(__LINE__)
+
 void error(const char* location, const char* msg)
 {
 	printf("Error at %s: %s\n", location, msg);
@@ -528,7 +529,7 @@ bool checkAccReached(const Vector* pVector1, const Vector* pVector2, const doubl
 			accDiff = fabs(pVector1->data[i] - pVector2->data[i]);
 
 			//check difference against accuracy
-			if (accDiff > acc)
+			if (accDiff >= acc)
 			{
 				bRet = false;
 				break;
