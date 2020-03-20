@@ -19,7 +19,6 @@ typedef struct
 	double* data;
 } Vector;
 
-
 typedef struct node
 {
 	Vector* vector;
@@ -30,6 +29,9 @@ typedef enum
 {
 	JACOBI = 0, GAUSS_SEIDEL = 1
 } Method;
+
+//TODO beschreibung
+void error(const char* location, const char* msg);
 
 /*  
 *Function: addNullTermination
@@ -83,9 +85,8 @@ bool currentFieldToNumber(const char* field, const uint32_t nSize, double* resul
 */
 bool initVector(Vector* vector, const uint32_t nSize);
 
-
+//TODO beschreibung
 void freeVector(Vector* pVector);
-
 
 /*  
 *Function: initMatrix
@@ -104,7 +105,7 @@ void freeVector(Vector* pVector);
 */
 bool initMatrix(Matrix* pMatrix, const uint32_t nSize);
 
-
+//TODO beschreibung
 void freeMatrix(Matrix* pMatrix);
 
 /*  
@@ -225,23 +226,6 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 bool load(const char* cfilename, Matrix* A, Vector* b, Vector* x);
 
 /*  
-*Function: vectorAbs
-*--------------------
-* Returns the absolute difference value of two inserts.
-*
-* Arguments
-*			 a:		 	First double value for the calculation.
-*			 b:		 	Second double value for the calculation.
-*			 nSize: 	Member of the matrix structure.
-*			 result:	The calculation result.
-*
-* Returns
-*			 1. boolean value 'true', when the result was calculated successfully.
-*			 2. boolean value 'false' otherwise.
-*/
-bool vectorAbs(const double* a, const double* b, const uint32_t nSize, double* result);
-
-/*  
 *Function: solve
 *--------------------
 * Wrapper acting as a logical switch for 
@@ -275,6 +259,15 @@ VectorLinkedListNode* solve(Method method, Matrix* A, Vector* b, Vector* x,const
 *			 previous node as a node.
 */
 VectorLinkedListNode* addVectorToLinkedList(VectorLinkedListNode* pPrevNode, const Vector* pSaveVector);
+
+//TODO beschreibung
+bool checkAccReached(const Vector* pVector1, const Vector* pVector2, const double acc);
+
+//TODO beschreibung
+bool copyVectorData(const Vector* pSrc, Vector* pDest);
+
+//TODO beschreibung
+bool clearVectorData(Vector* pVector);
 
 /*  
 *Function: solveGauss
