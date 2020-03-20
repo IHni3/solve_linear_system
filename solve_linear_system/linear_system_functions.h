@@ -32,7 +32,22 @@ typedef enum
 	JACOBI = 0, GAUSS_SEIDEL = 1
 } Method;
 
-//TODO @aaron
+
+/*  
+*Function: error
+*--------------------
+* A wrapper for the handling of error messages. Takes the exact file and line 
+* location + custom error messages and prints to stderr.
+*
+* Arguments
+*			 location:			Position where the error occurred. Points 
+*								to the file and exact line. Takes a 
+*								key-value pair with the filename and line counter.
+*			 msg:				Custom message (string) as a char pointer.
+*
+* Returns
+*			 None.
+*/
 void error(const char* location, const char* msg);
 
 /*  
@@ -42,8 +57,8 @@ void error(const char* location, const char* msg);
 * The purpose is to terminate the string
 *
 * Arguments
-*			 field:			Char pointer containing the string 
-*			 pos:			position where the termination is set
+*			 field:			Char pointer containing a string.
+*			 pos:			Position where the termination is set
 *
 * Returns
 *			 1. boolean value 'true', when all parameters are valid.
@@ -57,8 +72,8 @@ bool addNullTermination(char* field, const uint32_t pos);
 * Converts an given string into floating number
 *
 * Arguments
-*			 field:			char pointer containg a string. Allowed Characters '0-9', '.'. 
-*			 nSize:			Size of the specified field. Value has to be bigger then zero.
+*			 field:			Char pointer containg a string. Allowed Characters '0-9', '.'.
+*			 nSize:			Size of the specified field. Value has to be bigger than zero.
 *			 result:		If the function was executed successfully 
 *							the parameter contains the value of the 
 *							parameter field converted to double.
@@ -85,17 +100,29 @@ bool currentFieldToNumber(const char* field, const uint32_t nSize, double* resul
 */
 bool initVector(Vector* vector, const uint32_t nSize);
 
-//TODO @aaron
+/*  
+*Function: freeVector
+*--------------------
+* Takes a vector that had memory allocated to it and clears all 
+* pointers to the next block in a chain of blocks (preventing memory leaks). 
+* Makes the blocks available to be allocated again.
+*
+* Arguments
+*			 pVector:			A vector that has memory allocated to it.
+*
+* Returns
+*			 None.
+*/
 void freeVector(Vector* pVector);
 
 /*  
 *Function: initMatrix
 *--------------------
-* Initializes a Matrix with n colums and n rows spezified in nSize.
+* Initializes a Matrix with n colums and n rows specified in nSize.
 *
 * Arguments
 *			 pMatrix:		Matrix to initialize.
-*			 nSize:			Size for the spezified square-matrix (lines and colums).
+*			 nSize:			Size for the specified square-matrix (lines and columns).
 *
 * Returns
 *			 1. boolean value 'true', when all parameters are valid, the allocation of memory works 
@@ -104,7 +131,19 @@ void freeVector(Vector* pVector);
 */
 bool initMatrix(Matrix* pMatrix, const uint32_t nSize);
 
-//TODO @aaron
+/*  
+*Function: freeMatrix
+*--------------------
+* Takes a matrix that had memory allocated to it and clears all 
+* pointers to the next block in a chain of blocks (preventing memory leaks). 
+* Iterates through the matrix and makes the blocks available to be allocated again.
+*
+* Arguments
+*			 pMatrix:			A matrix that has memory allocated to it.
+*
+* Returns
+*			 None.
+*/
 void freeMatrix(Matrix* pMatrix);
 
 /*  
@@ -259,13 +298,62 @@ VectorLinkedListNode* solve(Method method, Matrix* A, Vector* b, Vector* x,const
 */
 VectorLinkedListNode* addVectorToLinkedList(VectorLinkedListNode* pPrevNode, const Vector* pSaveVector);
 
-//TODO @aaron
+/*  
+*Function: checkAccReached
+*--------------------
+* Always compares the last two results of the vector calculation (absolute value subtracted) 
+* and evaluates the accuracy of the calculation. 
+* If the accuracy of the calculation is greater than the specified accuracy, 
+* the loop aborts and returns the boolean value 'false'.
+*
+* Arguments
+*			 pVector1:			First vector for the calculation as a struct <Vector> object.
+*			 pVector2:			Second vector for the calculation as a struct <Vector> object.
+*			 acc:				The accuracy of the calculation as a double value.
+*
+* Returns
+*			 1. boolean value 'true' if the specified accuracy is not yet met.
+*			 2. boolean value 'false' if the specified accuracy has been reached.
+*/
 bool checkAccReached(const Vector* pVector1, const Vector* pVector2, const double acc);
 
-//TODO @aaron
+/*  
+*Function: copyVectorData
+*--------------------
+* Duplicates an existing vector into a new one after validation.
+* Iterates through all components that define the given vector (pSrc) 
+* and copies them into a new vector of the struct object 'Vector' (pDest).
+* Returns a boolean value 'true' after successfully copying all existing values.
+*
+* Arguments
+*			 pSrc:			A vector as a struct <Vector> object, that has its values 
+*							duplicated to a new vector object.
+*			 pDest:			Second vector as a struct <Vector> object that receives and 
+*							saves all values of origin vector (pSrc).
+*
+* Returns
+*			 1. boolean value 'true' if all entries of the existing 
+*				vector have been copied successfully
+*			 2. boolean value 'false' if not all entries have 
+*				been copied successfully.
+*/
 bool copyVectorData(const Vector* pSrc, Vector* pDest);
 
-//TODO @aaron
+/*  
+*Function: clearVectorData
+*--------------------
+* Fills all existing entries of a vector with zeros 
+* formatted as floating point numbers.
+*
+* Arguments
+*			 pVector:		A vector as a struct <Vector> object. 
+*
+* Returns
+*			 1. boolean value 'true' if all entries of the existing 
+*				vector have been copied successfully
+*			 2. boolean value 'false' if not all entries have 
+*				been copied successfully.
+*/
 bool clearVectorData(Vector* pVector);
 
 /*  
@@ -276,8 +364,8 @@ bool clearVectorData(Vector* pVector);
 *
 * Arguments
 *			 pMatrix:			A matrix with n rows and n lines.
-*			 pResultVector:		The resulting vectors.
-*			 pStartVector: 		The starting vectors.
+*			 pResultVector:		The resulting vectors as a struct <Vector> object.
+*			 pStartVector: 		The starting vectors as a struct <Vector> object.
 *			 acc:				The accuracy of the calculation.
 *
 * Returns
@@ -293,8 +381,8 @@ VectorLinkedListNode* solveGauss(Matrix* pa, Vector* pb, Vector* px,const double
 *
 * Arguments
 *			 pMatrix:			A matrix with n rows and n lines.
-*			 pResultVector:		The resulting vectors.
-*			 pStartVector: 		The starting vectors.
+*			 pResultVector:		The resulting vectors as a struct <Vector> object.
+*			 pStartVector: 		The starting vectors as a struct <Vector> object.
 *			 acc:				The accuracy of the calculation.
 *
 * Returns
@@ -318,14 +406,16 @@ clock_t startStopwatch();
 /*
 *Function: stopStopwatch
 *--------------------
-* Returns the number of clock ticks elapsed since the program was launched.
+* Returns the number of clock ticks elapsed (formatted as a floating point number) 
+* since the program was launched.
 *
 * Arguments
 *			 c:					First timestamp (starting value)
 *								to calculate the difference.		
 *
 * Returns
-*			 1. The difference between the timestamps as a float in seconds.
+*			 1. The difference between the timestamps as a 
+*				floating point number in seconds.
 */
 float stopStopwatch(const clock_t c);
 
