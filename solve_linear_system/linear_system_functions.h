@@ -56,12 +56,13 @@ bool addNullTermination(char* field, const uint32_t pos);
 *
 * Arguments
 *			 field:			char pointer containg a string. Allowed Characters '0-9', '.'. 
-*			 nSize:			Size of the specified field.
-*			 result:		Double pointer as unique identifier of 
-*							a to double converted string.
+*			 nSize:			Size of the specified field. Value has to be bigger then zero.
+*			 result:		If the function was executed successfully 
+*							the parameter contains the value of the 
+*							parameter field converted to double.
 *
 * Returns
-*			 1. boolean value 'true', when all parameters have been validated and parameter field is a floating-point number.
+*			 1. boolean value 'true', when all parameters are valid.
 *			 2. boolean value 'false' otherwise.
 */
 bool currentFieldToNumber(const char* field, const uint32_t nSize, double* result);
@@ -130,8 +131,8 @@ bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCo
 * a valid amount of reasonable results, both of which or ultimately none of both.
 *
 * Arguments
-*			 nRows:			Integer containing he amount of lines.
-*			 nCols:			Integer containing the amount of columns.
+*			 nRows:			Integer containing he number of lines.
+*			 nCols:			Integer containing the number of columns.
 *			 nCoefficients:	All values representing the coefficients of the linear
 *							system of equations. These are tested for proportional 
 *							length differences (+1) by this method.
