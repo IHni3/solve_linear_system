@@ -8,6 +8,14 @@
 #pragma warning(disable:4996)
 #endif
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+#define AT __FILE__ ":" TOSTRING(__LINE__)
+void error(const char* location, const char* msg)
+{
+	printf("Error at %s: %s\n", location, msg);
+}
+
 
 bool addNullTermination(char* field, const uint32_t pos)
 {
@@ -20,7 +28,6 @@ bool addNullTermination(char* field, const uint32_t pos)
 
 	return bRet;
 }
-
 
 bool currentFieldToNumber(const char* field, const uint32_t nSize, double* result)
 {
@@ -67,6 +74,15 @@ bool initVector(Vector* vector, const uint32_t nSize)
 	return bRet;
 }
 
+void freeVector(Vector* pVector)
+{
+	if (pVector)
+	{
+		free(pVector->data);
+		free(pVector);
+	}
+}
+
 
 bool initMatrix(Matrix* pMatrix, const uint32_t nSize)
 {
@@ -108,6 +124,19 @@ bool initMatrix(Matrix* pMatrix, const uint32_t nSize)
 	return bRet;
 }
 
+void freeMatrix(Matrix* pMatrix)
+{
+	if (pMatrix)
+	{
+		for (uint32_t i = 0; i < pMatrix->n; i++)
+		{
+			free(pMatrix->data[i]);
+		}
+		free(pMatrix->data);
+		free(pMatrix);
+	}
+}
+
 
 bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCols)
 {
@@ -125,7 +154,7 @@ bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCo
 			uint32_t nLastCols = 0; //columns of the previous iteration
 			bool bFirstIteration = true;
 
-			bool bSameColumns = true; //checks if there is the same number of columns in each row
+			bool bSameNumberOfColumns = true; //checks if there is the same number of columns in each row
 			char c;
 			do
 			{
@@ -140,8 +169,7 @@ bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCo
 
 					if (*nCols != nLastCols && bFirstIteration == false)
 					{
-						//TODO pruint32_t invalid file
-						bSameColumns = false;
+						bSameNumberOfColumns = false;
 					}
 					else if (bFirstIteration)
 					{
@@ -152,9 +180,9 @@ bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCo
 					*nCols = 0;
 					*nRows = *nRows + 1;
 				}
-			} while (c != EOF || bSameColumns == false);
+			} while (c != EOF || bSameNumberOfColumns == false);
 
-			bRet = bSameColumns;
+			bRet = bSameNumberOfColumns;
 
 			if (bRet == true) //if success set cols
 				*nCols = nLastCols;
@@ -240,23 +268,36 @@ bool insertVector(const Vector* vector, const uint32_t n, const char* field, con
 
 bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Vector* pStartVector)
 {
-	bool bReturn = false;
 
 	if (pMatrix && pResultsVector && pStartVector)
 	{
 
 		uint32_t rows = 0, cols = 0;
-		getDimensionsFromFile(cFilename, &rows, &cols); //TODO rückgabewert
-
+		const bool bRetGetDimFromFile = getDimensionsFromFile(cFilename, &rows, &cols);
+		if (!bRetGetDimFromFile)
+		{
+			error(AT, "get dimensions of file failed!");
+			return false;
+		}
 
 		uint32_t nCoefficients = 0;
-		bool bResultsVector, bStartVector;
-		interpretateDimensions(rows, cols, &nCoefficients, &bResultsVector, &bStartVector); //TODO rückgabewert
+		bool bResultsVectorGiven, bStartVectorGiven;
 
-		//pResultsVector = (Vector*)malloc(sizeof(*pResultsVector));;
-		if (bResultsVector)
+		const bool bInterpretateDimensions = interpretateDimensions(rows, cols, &nCoefficients, &bResultsVectorGiven, &bStartVectorGiven);
+		if (!bInterpretateDimensions)
 		{
-			bool ret1 = initVector(pResultsVector, nCoefficients); //TODO nullprüfung
+			error(AT, "interpretation of dimensions from file failed!");
+			return false;
+		}
+
+		if (bResultsVectorGiven)
+		{
+			const bool bInitVector = initVector(pResultsVector, nCoefficients);
+			if (!bInitVector)
+			{
+				error(AT, "initialisation of results-vector failed!");
+				return false;
+			}
 		}
 		else
 		{
@@ -264,10 +305,14 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 			pResultsVector->data = NULL;
 		}
 
-		//pStartVector = (Vector*)malloc(sizeof(*pStartVector));
-		if (bStartVector)
+		if (bStartVectorGiven)
 		{
-			bool ret2 = initVector(pStartVector, nCoefficients); //TODO null prüfung
+			const bool bInitVector = initVector(pStartVector, nCoefficients);
+			if (!bInitVector)
+			{
+				error(AT, "initialisation of start-vector failed!");
+				return false;
+			}
 		}
 		else
 		{
@@ -277,7 +322,7 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 
 
 
-		FILE* fpInputFile = fopen(cFilename, "r"); // file open
+		FILE* fpInputFile = fopen(cFilename, "r");
 		if (fpInputFile)
 		{
 			char c;
@@ -293,39 +338,66 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 			uint32_t nFieldCount = 0;
 			uint32_t nLineCount = 0;
 
-
-			//pMatrix = (Matrix*)malloc(sizeof(*pMatrix));
-			initMatrix(pMatrix, nCoefficients); //TODO Rückgabewert
+			const bool bInitMatrix = initMatrix(pMatrix, nCoefficients);
+			if (!bInitMatrix)
+			{
+				error(AT, "initialisation of matrix failed!");
+				return false;
+			}
 
 			do
 			{
 				c = (char)fgetc(fpInputFile);
-				//printf("found %c\n", c);
 
 				//da falls das feld abgeschlossen ist (newline oder delimiter) noch die null terminierung hinzugefügt wird
 				if (nCharCount + 1 >= nFieldSize)
 				{
 					nFieldSize += 3;
 					char* field = (char*)realloc(currentField, nFieldSize);
-					currentField = field; //auf null ptr pruefen
+					if(field)
+						currentField = field;
+					else
+					{
+						error(AT, "memory reallocation failed!");
+						return false;
+					}
 				}
 
 				if (c == delimiter || c == newline)
 				{
-					//printf("before currentField=%s\n", currentField);
-					bool success = addNullTermination(currentField, nCharCount); //TODO return value
-
-					//printf("currentField=%s\n", currentField);
+					bool bAddNullTermination = addNullTermination(currentField, nCharCount);
+					if (!bAddNullTermination)
+					{
+						error(AT, "adding null termination to field failed!");
+						return false;
+					}
 
 					if (nFieldCount < pMatrix->n)
-						insertMatrix(pMatrix, nLineCount, nFieldCount, currentField, nCharCount); //TODO Returnvalue
-					else if (bResultsVector == true && nFieldCount == pMatrix->n)
 					{
-						insertVector(pResultsVector, nLineCount, currentField, nCharCount); //TODO Returnvalue
+						const bool bInsertMatrix = insertMatrix(pMatrix, nLineCount, nFieldCount, currentField, nCharCount);
+						if (!bInsertMatrix)
+						{
+							error(AT, "inserting value into matrix failed!");
+							return false;
+						}
 					}
-					else if (bStartVector == true && nFieldCount == pMatrix->n + 1)
+					else if (bResultsVectorGiven == true && nFieldCount == pMatrix->n)
 					{
-						insertVector(pStartVector, nLineCount, currentField, nCharCount); //TODO Returnvalue
+						const bool bInsertVector = insertVector(pResultsVector, nLineCount, currentField, nCharCount);
+						if (!bInsertVector)
+						{
+							error(AT, "inserting value into result-vector failed!");
+							return false;
+						}
+					}
+					else if (bStartVectorGiven == true && nFieldCount == pMatrix->n + 1)
+					{
+						const bool bInsertVector = insertVector(pStartVector, nLineCount, currentField, nCharCount);
+						if (!bInsertVector)
+						{
+							error(AT, "inserting value into start-vector failed!");
+							return false;
+						}
 					}
 
 					memset(currentField, ' ', nFieldSize); //clear field to erase null termination. because otherwise the values could be shortened
@@ -349,12 +421,13 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 				}
 
 			} while (c != EOF);
-
-			bReturn = true;
 		}
+		return true;
 	}
-
-	return bReturn;
+	else
+	{
+		return false;
+	}
 }
 
 
@@ -380,27 +453,6 @@ VectorLinkedListNode* solve(Method method, Matrix* pMatrix, Vector* pResultVecto
 
 	return vec;
 }
-
-
-bool vectorAbs(const double* a, const double* b, const uint32_t nSize, double* result)
-{
-	//TODO @Tim : Ich weiß dass wir prüfen wollen, ob man überhaupt einen Betrag berechnen kann, aber wie bekommen wir den Wert dann hier raus?
-	if (a && b && result)
-	{
-		double value = 0;
-		for (uint32_t i = 0; i < nSize; i++)
-		{
-			value += fabs(a[i] - b[i]);
-		}
-		*result = value;
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
 
 VectorLinkedListNode* addVectorToLinkedList(VectorLinkedListNode* pPrevNode, const Vector* pSaveVector)
 {
@@ -436,73 +488,135 @@ VectorLinkedListNode* addVectorToLinkedList(VectorLinkedListNode* pPrevNode, con
 }
 
 
+bool checkAccReached(const Vector* pVector1, const Vector* pVector2, const double acc)
+{
+	bool bRet = false;
+	if (acc >= 0 && pVector1 && pVector2 && pVector1->data && pVector2->data && pVector1->n == pVector2->n)
+	{
+		double accDiff;
+		for (uint32_t i = 0; i < pVector1->n; i++)
+		{
+			//calculate difference btw. last two results
+			accDiff = fabs(pVector1->data[i] - pVector2->data[i]);
+
+			//check difference against accuracy
+			if (accDiff > acc)
+			{
+				bRet = false;
+				break;
+			}
+			else
+			{
+				bRet = true;
+			}
+		}
+	}
+	return bRet;
+}
+
+bool copyVectorData(const Vector* pSrc, Vector* pDest)
+{
+	bool bRet = false;
+	if (pSrc && pSrc->data && pDest && pDest->data && pSrc->n == pDest->n)
+	{
+		for (uint32_t i = 0; i < pSrc->n; i++)
+		{
+			pDest->data[i] = pSrc->data[i];
+		}
+		bRet = true;
+	}
+
+	return bRet;
+}
+
+bool clearVectorData(Vector* pVector)
+{
+	bool bRet = false;
+	if (pVector && pVector->data)
+	{
+		for (uint32_t i = 0; i < pVector->n; i++)
+		{
+			pVector->data[i] = 0.f;
+		}
+		bRet = true;
+	}
+
+	return bRet;
+}
+
+
 VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector, const double acc)
 {
 	VectorLinkedListNode* pStartNode = NULL;
 
 	if (pMatrix && pResultVector && pStartVector && acc >= 0.f)
 	{
-		const uint32_t n = pMatrix->n;
+		uint32_t n = pMatrix->n;
 
 		if (pStartVector->n <= 0)
 		{
-			initVector(pStartVector, n);  //TODO retval
-			for (uint32_t i = 0; i < n; i++)
+			const bool bInitVector = initVector(pStartVector, n); 
+			if (!bInitVector)
 			{
-				pStartVector->data[i] = 0.f;
+				error(AT, "initialisation of start-vector failed!");
+				return NULL;
+			}
+			const bool bClearVectorData = clearVectorData(pStartVector); 
+			if (!bClearVectorData)
+			{
+				error(AT, "clearing start-vector data failed!");
+				return NULL;
 			}
 		}
 
-		//difference between last two results
-		double accDiff;
-		//bool for ending do/while
-		bool accReached = false;
-
-		//iteration counter
-		uint32_t counter = 0;
-
-		//cache for gauss seidel algorithm
-		double sum;
-
+		uint32_t nCounter = 0;
 		VectorLinkedListNode* pCurNode = NULL;
+		bool bAccReached = false;	
+
+		Vector* pTempResultVector = (Vector*)malloc(sizeof(*pTempResultVector));
+		if (pTempResultVector == NULL)
+		{
+			error(AT, "memory allocation failed!");
+			return NULL;
+		}
+
+		const bool bInitVector = initVector(pTempResultVector, n);
+		if (!bInitVector)
+		{
+			error(AT, "initialisation of vector failed!");
+			return NULL;
+		}
 
 		do
-		{
-			for (uint32_t i = 0; i < n; i++)
+		{			
+			const bool bCopyResToTmp = copyVectorData(pResultVector, pTempResultVector);
+			if (!bCopyResToTmp)
 			{
-				sum = 0;
-
-				for (uint32_t j = 0; j < n; j++)
-				{
-					if (i != j)
-					{
-						sum = sum + pMatrix->data[i][j] * pStartVector->data[j];
-					}							
-				}
-				pStartVector->data[i] = (pResultVector->data[i] - sum) / pMatrix->data[i][i]; //Hauptdiagonale
+				error(AT, "copying vector failed!");
+				return NULL;
 			}
 
-			//iterate through rows to check, if accuracy is reached
-			for (uint32_t i = 0; i < n; i++)
+			for (uint32_t x = 0; x < n; x++)
 			{
-				//calculate difference btw. last two results
-				double prevValue = 0;
-				if (pCurNode)
-				{
-					prevValue = pCurNode->vector->data[i];
-				}
-				accDiff = fabs(pStartVector->data[i] - prevValue);
 
-				//check difference against accuracy
-				if (accDiff > acc)
+				for (uint32_t y = 0; y < n; y++)
 				{
-					accReached = false;
-					break;
+					if (x != y)
+					{
+						pTempResultVector->data[x] = pTempResultVector->data[x] - pMatrix->data[x][y] * pStartVector->data[y];
+					}
 				}
-				else
-				{
-					accReached = true;
-				}
+				pTempResultVector->data[x] = pTempResultVector->data[x] / pMatrix->data[x][x];
+			}
+
+			if(pCurNode) //check if last result exists
+				bAccReached = checkAccReached(pStartVector, pTempResultVector, acc);
+
+			bool bCopyVectorTmpToRes = copyVectorData(pTempResultVector, pStartVector);
+			if (!bCopyVectorTmpToRes)
+			{
+				error(AT, "copying vector failed!");
+				return NULL;
 			}
 
 			if (pCurNode == NULL)
@@ -515,10 +629,11 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 				pCurNode = addVectorToLinkedList(pCurNode, pStartVector);
 			}
 
-			counter++;
+			nCounter++;
 			
-		} while (!accReached && counter <= NUMBER_OF_ITERATIONS);
+		} while (!bAccReached && nCounter < NUMBER_OF_ITERATIONS);
 
+		freeVector(pTempResultVector);
 	}
 
 	return pStartNode;
@@ -535,15 +650,21 @@ VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector*
 
 		if (pStartVector->n <= 0)
 		{
-			initVector(pStartVector, n);  //TODO retval
-			for (uint32_t i = 0; i < n; i++)
+			const bool bInitVector = initVector(pStartVector, n);
+			if (!bInitVector)
 			{
-				pStartVector->data[i] = 0.f;
+				error(AT, "inizialisation of start-vector failed!");
+				return NULL;
+			}
+
+			const bool bclearVectorData = clearVectorData(pStartVector);
+			if (!bclearVectorData)
+			{
+				error(AT, "clearing start-vector failed!");
+				return NULL;
 			}
 		}
 
-		//difference between last two results
-		double accDiff;
 		//bool for ending do/while
 		bool accReached = false;
 
@@ -571,29 +692,10 @@ VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector*
 					pStartVector->data[i] = sum / pMatrix->data[i][i]; //Hauptdiagonale
 				}
 			}
+			
+			if(pCurNode) //check if last result exists
+				accReached = checkAccReached(pStartVector, pCurNode->vector, acc);
 
-			//iterate through rows to check, if accuracy is reached
-			for (uint32_t i = 0; i < n; i++)
-			{
-				//calculate difference btw. last two results
-				double prevValue = 0;
-				if (pCurNode)
-				{
-					prevValue = pCurNode->vector->data[i];
-				}
-				accDiff = fabs(pStartVector->data[i] - prevValue);
-
-				//check difference against accuracy
-				if (accDiff > acc)
-				{
-					accReached = false;
-					break;
-				}
-				else
-				{
-					accReached = true;
-				}
-			}
 
 			if (pCurNode == NULL)
 			{
@@ -607,7 +709,7 @@ VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector*
 
 			counter++;
 
-		} while (!accReached && counter <= NUMBER_OF_ITERATIONS);
+		} while (!accReached && counter < NUMBER_OF_ITERATIONS);
 
 	}
 

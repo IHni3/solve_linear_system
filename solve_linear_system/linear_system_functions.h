@@ -83,6 +83,10 @@ bool currentFieldToNumber(const char* field, const uint32_t nSize, double* resul
 */
 bool initVector(Vector* vector, const uint32_t nSize);
 
+
+void freeVector(Vector* pVector);
+
+
 /*  
 *Function: initMatrix
 *--------------------
@@ -99,6 +103,9 @@ bool initVector(Vector* vector, const uint32_t nSize);
 *			 2. boolean value 'false' otherwise.
 */
 bool initMatrix(Matrix* pMatrix, const uint32_t nSize);
+
+
+void freeMatrix(Matrix* pMatrix);
 
 /*  
 *Function: getDimensionsFromFile

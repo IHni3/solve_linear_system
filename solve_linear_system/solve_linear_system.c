@@ -23,8 +23,6 @@ void clearInputBuffer()
 	while ((c = getchar()) != '\n' && c != EOF) { }
 }
 
-
-
 /*  
 *Function: inputMode
 *--------------------	
@@ -175,9 +173,6 @@ bool userInputNewCalcOrExit()
 
 		scanf("%d", &input);
 		clearInputBuffer();
-		
-		
-
 
 		bRet = input == 1 || input == 2;
 
@@ -200,8 +195,6 @@ double userInputAccuracy()
 
 		scanf("%lf", &inputAcc);
 		clearInputBuffer();
-		
-		
 
 		bRet = inputAcc >= 0;
 
@@ -233,6 +226,8 @@ void printResults(const VectorLinkedListNode* pResults)
 
 			count++;
 		}
+		if (count >= 100)
+			printf("note: Iteration limit was reached!");
 	}
 }
 void printLastResult(const VectorLinkedListNode* pResults)
@@ -241,12 +236,17 @@ void printLastResult(const VectorLinkedListNode* pResults)
 	{
 		//Find last Node
 		const VectorLinkedListNode* node = pResults;
+		uint32_t count = 0;
 		while (node->next != NULL)
 		{
 			node = node->next;
-		}
+			count++;
+		}	
 
 		printCurrentNode(node);
+		printf("\n");
+		if (count >= 100)
+			printf("note: Iteration limit was reached!");
 	}
 }
 
@@ -295,7 +295,9 @@ int main()
 
 			printf("solving linear system..\n");
 			const clock_t t1 = startStopwatch();
-			VectorLinkedListNode* results = solve(method, pMatrix, pResultsVector, pStartVector, acc); //TODO auf rückgabewert prüfen		
+			VectorLinkedListNode* results = solve(method, pMatrix, pResultsVector, pStartVector, acc);
+			if (results == NULL)
+				printf("something went wrong, no results found!");
 
 			const float solvingTimeInS = stopStopwatch(t1);
 			printf("solved in %.2fs\n", solvingTimeInS);
@@ -313,11 +315,11 @@ int main()
 			bUserExit = userInputNewCalcOrExit();
 
 			//Cleanup
-			free(pMatrix);
+			freeMatrix(pMatrix);
+			freeVector(pResultsVector);
+			freeVector(pStartVector);
 			pMatrix = NULL;
-			free(pResultsVector);
 			pResultsVector = NULL;
-			free(pStartVector);
 			pStartVector = NULL;
 
 			printNewLine();
