@@ -84,18 +84,20 @@ bool addNullTermination(char* field, const uint32_t pos);
 */
 bool currentFieldToNumber(const char* field, const uint32_t nSize, double* result);
 
-/*  
+/*
 *Function: initVector
 *--------------------
 * Initializes a vector with the number of entries specified in nSize.
+* Allocates memory (size of the array) based on the number of entries (nSize).
 *
 * Arguments
 *			 vector:		Vector to initialize.
 *			 nSize:			Number of entries to create.
 *
 * Returns
-*			 1. boolean value 'true', when all parameters are valid, the allocation of memory works 
-*				and the given size (nSize) is bigger then zero.
+*			 1. boolean value 'true', when all parameters are valid, 
+*				the allocation of memory was successfull and the given 
+*				size (nSize) is bigger than zero.
 *			 2. boolean value 'false' otherwise.
 */
 bool initVector(Vector* vector, const uint32_t nSize);
@@ -119,6 +121,7 @@ void freeVector(Vector* pVector);
 *Function: initMatrix
 *--------------------
 * Initializes a Matrix with n colums and n rows specified in nSize.
+* Allocates memory (size of the array) based on the number of entries (nSize).
 *
 * Arguments
 *			 pMatrix:		Matrix to initialize.
@@ -126,7 +129,7 @@ void freeVector(Vector* pVector);
 *
 * Returns
 *			 1. boolean value 'true', when all parameters are valid, the allocation of memory works 
-*				and the given size (nSize) is bigger then zero.
+*				and the given size (nSize) is bigger than zero.
 *			 2. boolean value 'false' otherwise.
 */
 bool initMatrix(Matrix* pMatrix, const uint32_t nSize);
@@ -149,7 +152,7 @@ void freeMatrix(Matrix* pMatrix);
 /*  
 *Function: getDimensionsFromFile
 *--------------------
-* Evaluates the actual size of the file containing the 
+* Evaluates the actual size of the file (amount of rows and columns) containing the 
 * given values for the linear system of equations.
 *
 * Arguments
@@ -159,7 +162,7 @@ void freeMatrix(Matrix* pMatrix);
 *
 * Returns
 *			 1. boolean value 'true', when all variables have been validated 
-*				and the correct size of vertical and horizontal 
+*				and rows and columns are the same size
 *			 2. boolean value 'false' otherwise.
 */
 bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCols);
@@ -230,13 +233,30 @@ bool insertMatrix(const Matrix* matrix, const uint32_t nRow, const uint32_t nCol
 bool insertVector(const Vector* vector, const uint32_t n, const char* field, const uint32_t nSize);
 
 /*  
+*Function: initVariablesForReadFile
+*--------------------
+* Initializes all variables for the function readFile below.
+*
+* Arguments
+*			 cFilename:		 String containing the relative pMatrixth to the file.
+*			 pMatrix:		 A two-dimensional Array consisting of n rows and n lines.
+*			 pResultsVector: Vector containing the results of the linear system of equations.
+*			 pStartVector:	 Vector containing the initial values of the linear system of equations.
+*
+* Returns
+*			 1. boolean value 'true', when all variables have been validated.
+*			 2. boolean value 'false' otherwise.
+*/
+bool initVariablesForReadFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Vector* pStartVector);
+
+/*
 *Function: readFile
 *--------------------
 * Reads the file and verifies all inputs with the sub-functions above.
 * Ulitmately initializes the overall linear system of equations.
 *
 * Arguments
-*			 cFilename:		 String containing the relative pMatrixth to the file.
+*			 cFilename:		 String containing the relative path to the file.
 *			 pMatrix:		 A two-dimensional Array consisting of n rows and n lines.
 *			 pResultsVector: Vector containing the results of the linear system of equations.
 *			 pStartVector:	 Vector containing the initial values of the linear system of equations.
@@ -263,7 +283,7 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 */
 bool load(const char* cfilename, Matrix* A, Vector* b, Vector* x);
 
-/*  
+/*
 *Function: solve
 *--------------------
 * Wrapper acting as a logical switch for 
@@ -366,10 +386,10 @@ bool clearVectorData(Vector* pVector);
 *			 pMatrix:			A matrix with n rows and n lines.
 *			 pResultVector:		The resulting vectors as a struct <Vector> object.
 *			 pStartVector: 		The starting vectors as a struct <Vector> object.
-*			 acc:				The accuracy of the calculation.
+*			 acc:				The accuracy of the calculation as a double value.
 *
 * Returns
-*			 None.
+*			 1. The starting node (allocated size of the vector).
 */
 VectorLinkedListNode* solveGauss(Matrix* pa, Vector* pb, Vector* px,const double acc);
 
@@ -383,10 +403,10 @@ VectorLinkedListNode* solveGauss(Matrix* pa, Vector* pb, Vector* px,const double
 *			 pMatrix:			A matrix with n rows and n lines.
 *			 pResultVector:		The resulting vectors as a struct <Vector> object.
 *			 pStartVector: 		The starting vectors as a struct <Vector> object.
-*			 acc:				The accuracy of the calculation.
+*			 acc:				The accuracy of the calculation as a double value.
 *
 * Returns
-*			 None.
+*			 1. The starting node (allocated size of the vector).
 */
 VectorLinkedListNode* solveJacobi(Matrix* pa, Vector* pb, Vector* px,const double acc);
 
