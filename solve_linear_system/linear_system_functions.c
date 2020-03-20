@@ -277,7 +277,7 @@ bool initVariablesForReadFile(const char* cFilename, Matrix* pMatrix, Vector* pR
 		const bool bRetGetDimFromFile = getDimensionsFromFile(cFilename, &rows, &cols);
 		if (!bRetGetDimFromFile)
 		{
-			error(AT, "get dimensions of file failed!");
+			error(AT, "Gathering of file dimensions failed!");
 			return false;
 		}
 
@@ -287,7 +287,7 @@ bool initVariablesForReadFile(const char* cFilename, Matrix* pMatrix, Vector* pR
 		const bool bInterpretateDimensions = interpretateDimensions(rows, cols, &nCoefficients, &bResultsVectorGiven, &bStartVectorGiven);
 		if (!bInterpretateDimensions)
 		{
-			error(AT, "interpretation of dimensions from file failed!");
+			error(AT, "Interpretation of file dimensions failed!");
 			return false;
 		}
 
@@ -296,7 +296,7 @@ bool initVariablesForReadFile(const char* cFilename, Matrix* pMatrix, Vector* pR
 			const bool bInitVector = initVector(pResultsVector, nCoefficients);
 			if (!bInitVector)
 			{
-				error(AT, "initialisation of results-vector failed!");
+				error(AT, "Initialization of results-vector failed!");
 				return false;
 			}
 		}
@@ -311,7 +311,7 @@ bool initVariablesForReadFile(const char* cFilename, Matrix* pMatrix, Vector* pR
 			const bool bInitVector = initVector(pStartVector, nCoefficients);
 			if (!bInitVector)
 			{
-				error(AT, "initialisation of start-vector failed!");
+				error(AT, "Initialization of start-vector failed!");
 				return false;
 			}
 		}
@@ -324,7 +324,7 @@ bool initVariablesForReadFile(const char* cFilename, Matrix* pMatrix, Vector* pR
 		const bool bInitMatrix = initMatrix(pMatrix, nCoefficients);
 		if (!bInitMatrix)
 		{
-			error(AT, "initialisation of matrix failed!");
+			error(AT, "Initialization of matrix failed!");
 			return false;
 		}
 
@@ -343,14 +343,14 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 		const bool bInitVariablesForReadFile = initVariablesForReadFile(cFilename, pMatrix, pResultsVector, pStartVector);
 		if (!bInitVariablesForReadFile)
 		{
-			error(AT, "initialisation of variables to read file failed!");
+			error(AT, "Initialization of rudimentary variables of the function readFile failed!");
 			return false;
 		}
 
 		FILE* fpInputFile = fopen(cFilename, "r");
 		if (!fpInputFile)
 		{
-			error(AT, "opening given file failed!");
+			error(AT, "Failed to open the specified file!");
 			return false;
 		}
 		else
@@ -360,7 +360,7 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 			char* currentField = (char*)malloc(nFieldSize * sizeof(currentField));
 			if (currentField == NULL)
 			{
-				error(AT, "memory allocation failed!");
+				error(AT, "Memory allocation failed!");
 				return false;
 			}
 			uint32_t nCharCount = 0;
@@ -382,7 +382,7 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 						currentField = field;
 					else
 					{
-						error(AT, "memory reallocation failed!");
+						error(AT, "Memory reallocation failed!");
 						return false;
 					}
 				}
@@ -394,7 +394,7 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 						bool bAddNullTermination = addNullTermination(currentField, nCharCount);
 						if (!bAddNullTermination)
 						{
-							error(AT, "adding null termination to field failed!");
+							error(AT, "Adding null-termination to field failed!");
 							return false;
 						}
 
@@ -403,7 +403,7 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 							const bool bInsertMatrix = insertMatrix(pMatrix, nLineCount, nFieldCount, currentField, nCharCount);
 							if (!bInsertMatrix)
 							{
-								error(AT, "inserting value into matrix failed!");
+								error(AT, "Inserting value into matrix failed!");
 								return false;
 							}
 						}
@@ -412,7 +412,7 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 							const bool bInsertVector = insertVector(pResultsVector, nLineCount, currentField, nCharCount);
 							if (!bInsertVector)
 							{
-								error(AT, "inserting value into result-vector failed!");
+								error(AT, "Inserting value into result-vector failed!");
 								return false;
 							}
 						}
@@ -421,7 +421,7 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 							const bool bInsertVector = insertVector(pStartVector, nLineCount, currentField, nCharCount);
 							if (!bInsertVector)
 							{
-								error(AT, "inserting value into start-vector failed!");
+								error(AT, "Inserting value into start-vector failed!");
 								return false;
 							}
 						}
@@ -586,14 +586,14 @@ VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector*
 			const bool bInitVector = initVector(pStartVector, n);
 			if (!bInitVector)
 			{
-				error(AT, "inizialisation of start-vector failed!");
+				error(AT, "Initialization of start-vector failed!");
 				return NULL;
 			}
 
 			const bool bclearVectorData = clearVectorData(pStartVector);
 			if (!bclearVectorData)
 			{
-				error(AT, "clearing start-vector failed!");
+				error(AT, "Clearing start-vector failed!");
 				return NULL;
 			}
 		}
@@ -662,13 +662,13 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 			const bool bInitVector = initVector(pStartVector, n); 
 			if (!bInitVector)
 			{
-				error(AT, "initialisation of start-vector failed!");
+				error(AT, "Initialization of start-vector failed!");
 				return NULL;
 			}
 			const bool bClearVectorData = clearVectorData(pStartVector); 
 			if (!bClearVectorData)
 			{
-				error(AT, "clearing start-vector data failed!");
+				error(AT, "Clearing start-vector data failed!");
 				return NULL;
 			}
 		}
@@ -680,14 +680,14 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 		Vector* pTempResultVector = (Vector*)malloc(sizeof(*pTempResultVector));
 		if (pTempResultVector == NULL)
 		{
-			error(AT, "memory allocation failed!");
+			error(AT, "Memory allocation failed!");
 			return NULL;
 		}
 
 		const bool bInitVector = initVector(pTempResultVector, n);
 		if (!bInitVector)
 		{
-			error(AT, "initialisation of vector failed!");
+			error(AT, "Initialization of vector failed!");
 			return NULL;
 		}
 
@@ -696,7 +696,7 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 			const bool bCopyResToTmp = copyVectorData(pResultVector, pTempResultVector);
 			if (!bCopyResToTmp)
 			{
-				error(AT, "copying vector failed!");
+				error(AT, "Copying of vector failed!");
 				return NULL;
 			}
 
@@ -719,7 +719,7 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 			bool bCopyVectorTmpToRes = copyVectorData(pTempResultVector, pStartVector);
 			if (!bCopyVectorTmpToRes)
 			{
-				error(AT, "copying vector failed!");
+				error(AT, "Copying of vector failed!");
 				return NULL;
 			}
 
