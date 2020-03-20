@@ -573,6 +573,82 @@ bool clearVectorData(Vector* pVector)
 	return bRet;
 }
 
+VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector, const double acc)
+{
+	VectorLinkedListNode* pStartNode = NULL;
+
+	if (pMatrix && pResultVector && pStartVector && acc >= 0.f)
+	{
+		const uint32_t n = pMatrix->n;
+
+		if (pStartVector->n <= 0)
+		{
+			const bool bInitVector = initVector(pStartVector, n);
+			if (!bInitVector)
+			{
+				error(AT, "inizialisation of start-vector failed!");
+				return NULL;
+			}
+
+			const bool bclearVectorData = clearVectorData(pStartVector);
+			if (!bclearVectorData)
+			{
+				error(AT, "clearing start-vector failed!");
+				return NULL;
+			}
+		}
+
+		//bool for ending do/while
+		bool accReached = false;
+
+		//iteration counter
+		uint32_t counter = 0;
+
+		//cache for gauss seidel algorithm
+		double sum;
+
+		VectorLinkedListNode* pCurNode = NULL;
+
+		do
+		{
+			for (uint32_t i = 0; i < n; i++)
+			{
+				sum = pResultVector->data[i];
+
+				for (uint32_t j = 0; j < n; j++)
+				{
+					if (i != j)
+					{
+						sum = sum - pMatrix->data[i][j] * pStartVector->data[j];
+					}
+
+					pStartVector->data[i] = sum / pMatrix->data[i][i]; //Hauptdiagonale
+				}
+			}
+			
+			if(pCurNode) //check if last result exists
+				accReached = checkAccReached(pStartVector, pCurNode->vector, acc);
+
+
+			if (pCurNode == NULL)
+			{
+				pStartNode = addVectorToLinkedList(pCurNode, pStartVector);
+				pCurNode = pStartNode;
+			}
+			else
+			{
+				pCurNode = addVectorToLinkedList(pCurNode, pStartVector);
+			}
+
+			counter++;
+
+		} while (!accReached && counter < NUMBER_OF_ITERATIONS);
+
+	}
+
+	return pStartNode;
+}
+
 VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector, const double acc)
 {
 	VectorLinkedListNode* pStartNode = NULL;
@@ -662,82 +738,6 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 		} while (!bAccReached && nCounter < NUMBER_OF_ITERATIONS);
 
 		freeVector(pTempResultVector);
-	}
-
-	return pStartNode;
-}
-
-VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector, const double acc)
-{
-	VectorLinkedListNode* pStartNode = NULL;
-
-	if (pMatrix && pResultVector && pStartVector && acc >= 0.f)
-	{
-		const uint32_t n = pMatrix->n;
-
-		if (pStartVector->n <= 0)
-		{
-			const bool bInitVector = initVector(pStartVector, n);
-			if (!bInitVector)
-			{
-				error(AT, "inizialisation of start-vector failed!");
-				return NULL;
-			}
-
-			const bool bclearVectorData = clearVectorData(pStartVector);
-			if (!bclearVectorData)
-			{
-				error(AT, "clearing start-vector failed!");
-				return NULL;
-			}
-		}
-
-		//bool for ending do/while
-		bool accReached = false;
-
-		//iteration counter
-		uint32_t counter = 0;
-
-		//cache for gauss seidel algorithm
-		double sum;
-
-		VectorLinkedListNode* pCurNode = NULL;
-
-		do
-		{
-			for (uint32_t i = 0; i < n; i++)
-			{
-				sum = pResultVector->data[i];
-
-				for (uint32_t j = 0; j < n; j++)
-				{
-					if (i != j)
-					{
-						sum = sum - pMatrix->data[i][j] * pStartVector->data[j];
-					}
-
-					pStartVector->data[i] = sum / pMatrix->data[i][i]; //Hauptdiagonale
-				}
-			}
-			
-			if(pCurNode) //check if last result exists
-				accReached = checkAccReached(pStartVector, pCurNode->vector, acc);
-
-
-			if (pCurNode == NULL)
-			{
-				pStartNode = addVectorToLinkedList(pCurNode, pStartVector);
-				pCurNode = pStartNode;
-			}
-			else
-			{
-				pCurNode = addVectorToLinkedList(pCurNode, pStartVector);
-			}
-
-			counter++;
-
-		} while (!accReached && counter < NUMBER_OF_ITERATIONS);
-
 	}
 
 	return pStartNode;
