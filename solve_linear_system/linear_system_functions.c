@@ -152,31 +152,41 @@ bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCo
 
 			bool bSameNumberOfColumns = true; //checks if there is the same number of columns in each row
 			char c;
+			bool bLineEmpty = true;
 			do
 			{
 				c = (char)fgetc(pReadFileHandle);
-				if (c == ',')
+				if (c == DELIMITER)
 				{
 					*nCols = *nCols + 1;
 				}
-				else if (c == '\n')
+				else if (c == LINE_ENDING)
 				{
-					*nCols = *nCols + 1; //da kein delimiter mehr - kommt am ende
-
-					if (*nCols != nLastCols && bFirstIteration == false)
+					if (bLineEmpty == false)
 					{
-						bSameNumberOfColumns = false;
-					}
-					else if (bFirstIteration)
-					{
-						bFirstIteration = false;
-					}
+						*nCols = *nCols + 1; //da kein delimiter mehr - kommt am ende
 
-					nLastCols = *nCols;
-					*nCols = 0;
-					*nRows = *nRows + 1;
+						if (*nCols != nLastCols && bFirstIteration == false)
+						{
+							bSameNumberOfColumns = false;
+						}
+						else if (bFirstIteration)
+						{
+							bFirstIteration = false;
+						}
+
+						nLastCols = *nCols;
+						*nCols = 0;
+						*nRows = *nRows + 1;
+
+						bLineEmpty = true; //becaue next line will be checked
+					}
 				}
-			} while (c != EOF || bSameNumberOfColumns == false);
+				else
+				{
+					bLineEmpty = false;
+				}
+			} while (c != EOF && bSameNumberOfColumns == true);
 
 			bRet = bSameNumberOfColumns;
 
@@ -258,12 +268,10 @@ bool insertVector(const Vector* vector, const uint32_t n, const char* field, con
 	return bRet;
 }
 
-bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Vector* pStartVector)
+bool initVariablesForReadFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Vector* pStartVector)
 {
-
 	if (pMatrix && pResultsVector && pStartVector)
 	{
-
 		uint32_t rows = 0, cols = 0;
 		const bool bRetGetDimFromFile = getDimensionsFromFile(cFilename, &rows, &cols);
 		if (!bRetGetDimFromFile)
@@ -312,30 +320,53 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 			pStartVector->data = NULL;
 		}
 
+		const bool bInitMatrix = initMatrix(pMatrix, nCoefficients);
+		if (!bInitMatrix)
+		{
+			error(AT, "initialisation of matrix failed!");
+			return false;
+		}
 
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Vector* pStartVector)
+{
+	if (pMatrix && pResultsVector && pStartVector)
+	{
+		const bool bInitVariablesForReadFile = initVariablesForReadFile(cFilename, pMatrix, pResultsVector, pStartVector);
+		if (!bInitVariablesForReadFile)
+		{
+			error(AT, "initialisation of variables to read file failed!");
+			return false;
+		}
 
 		FILE* fpInputFile = fopen(cFilename, "r");
-		if (fpInputFile)
+		if (!fpInputFile)
+		{
+			error(AT, "opening given file failed!");
+			return false;
+		}
+		else
 		{
 			char c;
-			char delimiter = ',';
-			char newline = '\n';
 			size_t nFieldSize = 10;
 			char* currentField = (char*)malloc(nFieldSize * sizeof(currentField));
 			if (currentField == NULL)
 			{
+				error(AT, "memory allocation failed!");
 				return false;
 			}
 			uint32_t nCharCount = 0;
 			uint32_t nFieldCount = 0;
 			uint32_t nLineCount = 0;
 
-			const bool bInitMatrix = initMatrix(pMatrix, nCoefficients);
-			if (!bInitMatrix)
-			{
-				error(AT, "initialisation of matrix failed!");
-				return false;
-			}
+			bool bLineEmpty = true;
 
 			do
 			{
@@ -355,59 +386,66 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 					}
 				}
 
-				if (c == delimiter || c == newline)
+				if (c == DELIMITER || c == LINE_ENDING)
 				{
-					bool bAddNullTermination = addNullTermination(currentField, nCharCount);
-					if (!bAddNullTermination)
+					if (bLineEmpty == false)
 					{
-						error(AT, "adding null termination to field failed!");
-						return false;
-					}
-
-					if (nFieldCount < pMatrix->n)
-					{
-						const bool bInsertMatrix = insertMatrix(pMatrix, nLineCount, nFieldCount, currentField, nCharCount);
-						if (!bInsertMatrix)
+						bool bAddNullTermination = addNullTermination(currentField, nCharCount);
+						if (!bAddNullTermination)
 						{
-							error(AT, "inserting value into matrix failed!");
+							error(AT, "adding null termination to field failed!");
 							return false;
 						}
-					}
-					else if (bResultsVectorGiven == true && nFieldCount == pMatrix->n)
-					{
-						const bool bInsertVector = insertVector(pResultsVector, nLineCount, currentField, nCharCount);
-						if (!bInsertVector)
-						{
-							error(AT, "inserting value into result-vector failed!");
-							return false;
-						}
-					}
-					else if (bStartVectorGiven == true && nFieldCount == pMatrix->n + 1)
-					{
-						const bool bInsertVector = insertVector(pStartVector, nLineCount, currentField, nCharCount);
-						if (!bInsertVector)
-						{
-							error(AT, "inserting value into start-vector failed!");
-							return false;
-						}
-					}
 
-					memset(currentField, ' ', nFieldSize); //clear field to erase null termination. because otherwise the values could be shortened
+						if (nFieldCount < pMatrix->n)
+						{
+							const bool bInsertMatrix = insertMatrix(pMatrix, nLineCount, nFieldCount, currentField, nCharCount);
+							if (!bInsertMatrix)
+							{
+								error(AT, "inserting value into matrix failed!");
+								return false;
+							}
+						}
+						else if (pResultsVector->n > 0 && nFieldCount == pMatrix->n)
+						{
+							const bool bInsertVector = insertVector(pResultsVector, nLineCount, currentField, nCharCount);
+							if (!bInsertVector)
+							{
+								error(AT, "inserting value into result-vector failed!");
+								return false;
+							}
+						}
+						else if (pStartVector->n > 0 && nFieldCount == pMatrix->n + 1)
+						{
+							const bool bInsertVector = insertVector(pStartVector, nLineCount, currentField, nCharCount);
+							if (!bInsertVector)
+							{
+								error(AT, "inserting value into start-vector failed!");
+								return false;
+							}
+						}
 
-					if (c == delimiter)
-					{
-						nFieldCount++;
-						nCharCount = 0; //reset char count
-					}
-					else //newline
-					{
-						nLineCount++;
-						nFieldCount = 0;
-						nCharCount = 0;
+						memset(currentField, ' ', nFieldSize); //clear field to erase null termination. because otherwise the values could be shortened
+
+						if (c == DELIMITER)
+						{
+							nFieldCount++;
+							nCharCount = 0; //reset char count
+						}
+						else //newline
+						{
+							nLineCount++;
+							nFieldCount = 0;
+							nCharCount = 0;
+
+							bLineEmpty = true;
+						}
 					}
 				}
 				else
 				{
+					bLineEmpty = false;
+
 					currentField[nCharCount] = c;
 					nCharCount++;
 				}

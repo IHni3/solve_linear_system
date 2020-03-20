@@ -7,6 +7,8 @@
 #include <time.h>
 
 #define NUMBER_OF_ITERATIONS 100
+#define DELIMITER ','
+#define LINE_ENDING '\n'
 
 typedef struct
 {
