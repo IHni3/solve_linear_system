@@ -1,5 +1,3 @@
-#ifdef xxx
-
 #include "linear_system_functions.h"
 
 #define THROW_EXCEPTION printf("TEST: Check failed in function \"%s\", Line \"%d\"\n", __FUNCTION__, __LINE__)
@@ -137,5 +135,3 @@ bool testAll()
 
 	return ret1 & ret2 & ret3;
 }
-
-#endif

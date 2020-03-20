@@ -19,7 +19,7 @@ void error(const char* location, const char* msg)
 bool addNullTermination(char* field, const uint32_t pos)
 {
 	bool bRet = false;
-	if (field && pos >= 0)
+	if (field)
 	{
 		field[pos] = '\0';
 		bRet = true;

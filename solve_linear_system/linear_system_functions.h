@@ -30,7 +30,7 @@ typedef enum
 	JACOBI = 0, GAUSS_SEIDEL = 1
 } Method;
 
-//TODO beschreibung
+//TODO @aaron
 void error(const char* location, const char* msg);
 
 /*  
@@ -40,11 +40,11 @@ void error(const char* location, const char* msg);
 * The purpose is to terminate the string
 *
 * Arguments
-*			 field:			Char pointer containing a string 
+*			 field:			Char pointer containing the string 
 *			 pos:			position where the termination is set
 *
 * Returns
-*			 1. boolean value 'true', when all variables have been validated.
+*			 1. boolean value 'true', when all parameters are valid.
 *			 2. boolean value 'false' otherwise.
 */
 bool addNullTermination(char* field, const uint32_t pos);
@@ -52,19 +52,16 @@ bool addNullTermination(char* field, const uint32_t pos);
 /*  
 *Function: currentFieldToNumber
 *--------------------
-* Takes a single field of type <char pointer> and returns
-* a boolean after validating the numerical correctness by
-* cycling through every character checking with isdigit().
+* Converts an given string into floating number
 *
 * Arguments
-*			 field:			Char pointer containing a string consisting of 
-*							a field of the linear system of equations.
-*			 nSize:			Size of the specified field (single chars count, except dots).
+*			 field:			char pointer containg a string. Allowed Characters '0-9', '.'. 
+*			 nSize:			Size of the specified field.
 *			 result:		Double pointer as unique identifier of 
 *							a to double converted string.
 *
 * Returns
-*			 1. boolean value 'true', when all variables have been validated.
+*			 1. boolean value 'true', when all parameters have been validated and parameter field is a floating-point number.
 *			 2. boolean value 'false' otherwise.
 */
 bool currentFieldToNumber(const char* field, const uint32_t nSize, double* result);
@@ -72,40 +69,39 @@ bool currentFieldToNumber(const char* field, const uint32_t nSize, double* resul
 /*  
 *Function: initVector
 *--------------------
-* Initializes a vector as a function of the size of the vector.
+* Initializes a vector with the number of entries specified in nSize.
 *
 * Arguments
-*			 vector:		A vector array with supposedly multiple entries.
-*			 nSize:			Size of the specified vector (single chars count, except dots).
+*			 vector:		Vector to initialize.
+*			 nSize:			Number of entries to create.
 *
 * Returns
-*			 1. boolean value 'true', when all variables have been validated 
-*				and thus the vector was initialized successfully.
+*			 1. boolean value 'true', when all parameters are valid, the allocation of memory works 
+*				and the given size (nSize) is bigger then zero.
 *			 2. boolean value 'false' otherwise.
 */
 bool initVector(Vector* vector, const uint32_t nSize);
 
-//TODO beschreibung
+//TODO @aaron
 void freeVector(Vector* pVector);
 
 /*  
 *Function: initMatrix
 *--------------------
-* Initializes a matrix as a function of the size of the matrix.
+* Initializes a Matrix with n colums and n rows spezified in nSize.
 *
 * Arguments
-*			 pMatrix:		A two-dimensional Array consisting of n rows and n lines.
-*			 nSize:			Size of the specified vector (single chars count, except dots).
-*							Should be the same for lines and rows (logically).
+*			 pMatrix:		Matrix to initialize.
+*			 nSize:			Size for the spezified square-matrix (lines and colums).
 *
 * Returns
-*			 1. boolean value 'true', when all variables have been validated 
-*				and thus the matrix was initialized successfully.
+*			 1. boolean value 'true', when all parameters are valid, the allocation of memory works 
+*				and the given size (nSize) is bigger then zero.
 *			 2. boolean value 'false' otherwise.
 */
 bool initMatrix(Matrix* pMatrix, const uint32_t nSize);
 
-//TODO beschreibung
+//TODO @aaron
 void freeMatrix(Matrix* pMatrix);
 
 /*  
@@ -260,13 +256,13 @@ VectorLinkedListNode* solve(Method method, Matrix* A, Vector* b, Vector* x,const
 */
 VectorLinkedListNode* addVectorToLinkedList(VectorLinkedListNode* pPrevNode, const Vector* pSaveVector);
 
-//TODO beschreibung
+//TODO @aaron
 bool checkAccReached(const Vector* pVector1, const Vector* pVector2, const double acc);
 
-//TODO beschreibung
+//TODO @aaron
 bool copyVectorData(const Vector* pSrc, Vector* pDest);
 
-//TODO beschreibung
+//TODO @aaron
 bool clearVectorData(Vector* pVector);
 
 /*  
