@@ -11,11 +11,11 @@
 #pragma warning(disable:4996)
 #endif
 
-
+//TODO aaron
 /*
 *Function: cleanInputBuffer
 *--------------------
-* keine Referenzierung
+* keine Referenzierung //HIER
 */
 void clearInputBuffer()
 {
@@ -96,7 +96,7 @@ bool userInputFileValidation(const char* path, Matrix* pMatrix, Vector* pResults
 	return bRet;
 }
 
-
+//TODO aaron
 void userInputPath(Matrix* pMatrix, Vector* pResultsVector,Vector* pStartVector)
 {
 	bool bRet = false;
@@ -116,6 +116,7 @@ void userInputPath(Matrix* pMatrix, Vector* pResultsVector,Vector* pStartVector)
 	} while (!bRet);
 }
 
+//TODO aaron
 Method userInputMethod()
 {
 	bool bRet = false;
@@ -140,6 +141,7 @@ Method userInputMethod()
 	return method;
 }
 
+//TODO aaron
 bool userInputPrintResults()
 {
 	bool bRet = false;
@@ -162,6 +164,7 @@ bool userInputPrintResults()
 	return input == 1;
 }
 
+//TODO aaron
 bool userInputNewCalcOrExit()
 {
 	bool bRet = false;
@@ -184,6 +187,7 @@ bool userInputNewCalcOrExit()
 	return input == 2; //user wants to Exit
 }
 
+//TODO aaron
 double userInputAccuracy()
 {
 	bool bRet = false;
@@ -206,6 +210,7 @@ double userInputAccuracy()
 	return inputAcc;
 }
 
+//TODO aaron
 void printCurrentNode(const VectorLinkedListNode* node)
 {
 	if (node && node->vector)
@@ -213,6 +218,7 @@ void printCurrentNode(const VectorLinkedListNode* node)
 			printf("[%.10lf] ", node->vector->data[i]);
 }
 
+//TODO aaron
 void printResults(const VectorLinkedListNode* pResults)
 {
 	if (pResults)
@@ -230,6 +236,8 @@ void printResults(const VectorLinkedListNode* pResults)
 			printf("note: Iteration limit was reached!");
 	}
 }
+
+//TODO aaron
 void printLastResult(const VectorLinkedListNode* pResults)
 {
 	if (pResults)
@@ -254,21 +262,6 @@ void printNewLine()
 {
 	printf("\n");
 }
-
-
-/*  
-*Function: main
-*--------------------	
-* Main function which calls sub-functions.
-* Possesses the logic to handle fundamental method calls.
-*
-* Arguments
-*			 numberOfArguments:		Length of the argument vector.
-*			 argv:					Array of character pointers.
-*
-* Returns
-*			 None.
-*/
 
 int main()
 {

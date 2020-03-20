@@ -16,7 +16,6 @@ void error(const char* location, const char* msg)
 	printf("Error at %s: %s\n", location, msg);
 }
 
-
 bool addNullTermination(char* field, const uint32_t pos)
 {
 	bool bRet = false;
@@ -54,7 +53,6 @@ bool currentFieldToNumber(const char* field, const uint32_t nSize, double* resul
 	return bRet;
 }
 
-
 bool initVector(Vector* vector, const uint32_t nSize)
 {
 	bool bRet = false;
@@ -82,7 +80,6 @@ void freeVector(Vector* pVector)
 		free(pVector);
 	}
 }
-
 
 bool initMatrix(Matrix* pMatrix, const uint32_t nSize)
 {
@@ -136,7 +133,6 @@ void freeMatrix(Matrix* pMatrix)
 		free(pMatrix);
 	}
 }
-
 
 bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCols)
 {
@@ -195,7 +191,6 @@ bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCo
 	return bRet;
 }
 
-
 bool interpretateDimensions(const uint32_t nRows, const uint32_t nCols, uint32_t* nCoefficients, bool* bResults, bool* bStartVector)
 {
 	bool bRet = false;
@@ -229,7 +224,6 @@ bool interpretateDimensions(const uint32_t nRows, const uint32_t nCols, uint32_t
 	return bRet;
 }
 
-
 bool insertMatrix(const Matrix* matrix, const uint32_t nRow, const uint32_t nCol, const char* field, const uint32_t nSize)
 {
 	double num = 0;
@@ -245,7 +239,6 @@ bool insertMatrix(const Matrix* matrix, const uint32_t nRow, const uint32_t nCol
 
 	return bRet;
 }
-
 
 bool insertVector(const Vector* vector, const uint32_t n, const char* field, const uint32_t nSize)
 {
@@ -264,7 +257,6 @@ bool insertVector(const Vector* vector, const uint32_t n, const char* field, con
 
 	return bRet;
 }
-
 
 bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Vector* pStartVector)
 {
@@ -430,7 +422,6 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 	}
 }
 
-
 bool load(const char* cfilename, Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector)
 {
 	return readFile(cfilename, pMatrix, pResultVector, pStartVector);
@@ -487,7 +478,6 @@ VectorLinkedListNode* addVectorToLinkedList(VectorLinkedListNode* pPrevNode, con
 	return node;
 }
 
-
 bool checkAccReached(const Vector* pVector1, const Vector* pVector2, const double acc)
 {
 	bool bRet = false;
@@ -543,7 +533,6 @@ bool clearVectorData(Vector* pVector)
 
 	return bRet;
 }
-
 
 VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector, const double acc)
 {
@@ -639,7 +628,6 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 	return pStartNode;
 }
 
-
 VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector* pStartVector, const double acc)
 {
 	VectorLinkedListNode* pStartNode = NULL;
@@ -716,12 +704,10 @@ VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector*
 	return pStartNode;
 }
 
-
 clock_t startStopwatch()
 {
 	return clock();
 }
-
 
 float stopStopwatch(const clock_t c)
 {
