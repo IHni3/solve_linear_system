@@ -11,11 +11,25 @@
 #pragma warning(disable:4996)
 #endif
 
-//TODO @aaron
 /*
-*Function: cleanInputBuffer
-*--------------------
-* keine Referenzierung //HIER
+*Function: clearInputBuffer
+*--------------------	
+* Clears the input buffer. Delimiting factors are 
+* new lines and end of file.
+*
+* Arguments
+*			 c:				variable acting as a logic switch.
+*
+*			 returnValue:	all available ENUM values within
+*							the ENUM 'Method'.
+*			 
+*
+* Returns
+*			1: boolean value 'true' and ENUM value 'JACOBI',
+*			   if input (c) is 1.
+*			2: boolean value 'true' and ENUM value 'GAUSS_SEIDEL,
+*			   if input (c) is 2.
+*			3: boolean value 'false' otherwise.
 */
 void clearInputBuffer()
 {
@@ -24,7 +38,7 @@ void clearInputBuffer()
 }
 
 /*  
-*Function: inputMode
+*Function: inputMethodValidation
 *--------------------	
 * Returns the method to be used for solving
 * the linear system of equations based on the 
@@ -68,7 +82,8 @@ bool inputMethodValidation(const int32_t input, Method* returnValue)
 *Function: userInputFileValidation
 *--------------------
 * Acts as a wrapper and calls method 'load'; returns the boolean outcome.
-* In this case it is used to validate the given file.
+* In this case it is used to validate the given file. Prints out the required time
+* for the file opening and validation.
 *
 * Arguments
 *			 path:			 Path to specified file.
@@ -82,7 +97,7 @@ bool inputMethodValidation(const int32_t input, Method* returnValue)
 */
 bool userInputFileValidation(const char* path, Matrix* pMatrix, Vector* pResultsVector, Vector* pStartVector)
 {
-	printf("loading file..\n");
+	printf("Loading file..\n");
 	const clock_t t1 = startStopwatch();
 		
 	bool bRet = load(path, pMatrix, pResultsVector, pStartVector);
@@ -90,20 +105,34 @@ bool userInputFileValidation(const char* path, Matrix* pMatrix, Vector* pResults
 	if (bRet)
 	{
 		const float loadingTimeInS = stopStopwatch(t1);
-		printf("file loaded in %.2fs\n", loadingTimeInS);
+		printf("File loaded in %.2fs\n", loadingTimeInS);
 	}
 	
 	return bRet;
 }
 
-//TODO @aaron
+/*  
+*Function: userInputPath
+*--------------------
+* Takes the users input and validates it via sub-function (userInputFileValidation()).
+* A valid input is mandatory for the method to continue. Asks the user for input
+* until a valid input is given.
+*
+* Arguments
+*			 pMatrix:		 A matrix with n rows and n columns.
+*			 pStartVector:	 Contains initial coefficients and iteration vectors.
+*			 pResultsVector: Contains resulting coefficients and iteration vectors.
+*
+* Returns
+*			 None.
+*/
 void userInputPath(Matrix* pMatrix, Vector* pResultsVector,Vector* pStartVector)
 {
 	bool bRet = false;
 	char* buffer = malloc(sizeof(char) * 1024);
 	do
 	{
-		printf("please enter file path of linear system (csv): ");		
+		printf("Please enter file path of linear system (csv): ");		
 		scanf("%1023s", buffer);
 		clearInputBuffer();
 		
@@ -111,12 +140,24 @@ void userInputPath(Matrix* pMatrix, Vector* pResultsVector,Vector* pStartVector)
 		bRet = userInputFileValidation(buffer, pMatrix, pResultsVector, pStartVector);
 
 		if(!bRet)
-			printf("given path does not exist or file is invalid!\n\n");
+			printf("Given path does not exist or file is invalid!\n\n");
 
 	} while (!bRet);
 }
 
-//TODO @aaron
+/*  
+*Function: userInputMethod
+*--------------------
+* Asks the user for input until a valid input is given. Takes the users 
+* input and validates it via sub-function (userInputFileValidation()).
+* A valid input is mandatory for the method to continue.
+*
+* Arguments
+*			 None.
+*
+* Returns
+*			 1. The chosen input as a struct <Method> object.
+*/
 Method userInputMethod()
 {
 	bool bRet = false;
@@ -125,7 +166,7 @@ Method userInputMethod()
 	Method method;
 	do
 	{
-		printf("iteration method:\n1. jacobi\n2. gauss-seidel\n\n");		
+		printf("Iteration method:\n1. Jacobi\n2. Gauss-Seidel\n\n");		
 		scanf("%d", &input);
 		clearInputBuffer();
 		
@@ -134,14 +175,26 @@ Method userInputMethod()
 		bRet = inputMethodValidation(input, &method);
 
 		if(!bRet)
-			printf("input is invalid!\n\n");
+			printf("Input is invalid!\n\n");
 
 	} while (!bRet);
 
 	return method;
 }
 
-//TODO @aaron
+/*  
+*Function: userInputPrintResults
+*--------------------
+* Validates user input and outputs the results depending on the
+* users choice.
+*
+* Arguments
+*			 None.
+*
+* Returns
+*			 1. Boolean value 'true' if the user input was 1.
+*			 2. Boolean value 'false' if the user input was 2.
+*/
 bool userInputPrintResults()
 {
 	bool bRet = false;
@@ -149,7 +202,7 @@ bool userInputPrintResults()
 	int32_t input = 0;
 	do
 	{
-		printf("results:\n1. print all results\n2. print only last result\n\n");
+		printf("Results:\n1. Print all results\n2. Print last result only\n\n");
 
 		scanf("%d", &input);
 		clearInputBuffer();
@@ -157,14 +210,27 @@ bool userInputPrintResults()
 		bRet = input == 1 || input == 2;
 
 		if (!bRet)
-			printf("input is invalid!\n\n");
+			printf("Input is invalid!\n\n");
 
 	} while (!bRet);
 
 	return input == 1;
 }
 
-//TODO @aaron
+/*  
+*Function: userInputNewCalcOrExit
+*--------------------
+* Takes the user input after him deciding between 
+* a new calculation and exiting the program. A valid user input
+* is required for the function to continue.
+*
+* Arguments
+*			 None.
+*
+* Returns
+*			 1. Boolean value 'false' if the user input was 1.
+*			 2. Boolean value 'true' if the user input was 2.
+*/
 bool userInputNewCalcOrExit()
 {
 	bool bRet = false;
@@ -172,7 +238,7 @@ bool userInputNewCalcOrExit()
 	int32_t input = 0;
 	do
 	{
-		printf("1. start new calculation\n2. exit program\n\n");
+		printf("1. Start new calculation\n2. Exit program\n\n");
 
 		scanf("%d", &input);
 		clearInputBuffer();
@@ -180,14 +246,26 @@ bool userInputNewCalcOrExit()
 		bRet = input == 1 || input == 2;
 
 		if (!bRet)
-			printf("input is invalid!\n\n");
+			printf("Input is invalid!\n\n");
 
 	} while (!bRet);
 
 	return input == 2; //user wants to Exit
 }
 
-//TODO @aaron
+/*  
+*Function: userInputAccuracy
+*--------------------
+* Returns the accuracy defined by the user input. Specified value
+* has to be equal or bigger than zero.
+*
+* Arguments
+*			 None.
+*
+* Returns
+*			 1. A double value representing the users 
+*				desired accuracy for the calculation.
+*/
 double userInputAccuracy()
 {
 	bool bRet = false;
@@ -203,14 +281,27 @@ double userInputAccuracy()
 		bRet = inputAcc >= 0;
 
 		if(!bRet)
-			printf("given accuracy is invalid. Value has to be equal or bigger then zero!\n\n");
+			printf("Specified accuracy is invalid. Value has to be equal or bigger than zero!\n\n");
 
 	} while (!bRet);
 
 	return inputAcc;
 }
 
-//TODO @aaron
+/*  
+*Function: printCurrentNode
+*--------------------
+* Prints out the current node of a vector. Accuracy of 
+* the output is 10 characters post-decimal per value.
+*
+* Arguments
+*			 node:			A struct <VectorLinkedListNode> object, that is 
+*							implicitly defined by the struct <Vector> (values 
+*							represented as an array [double pointer]).
+*
+* Returns
+*			 None.
+*/
 void printCurrentNode(const VectorLinkedListNode* node)
 {
 	if (node && node->vector)
@@ -218,7 +309,21 @@ void printCurrentNode(const VectorLinkedListNode* node)
 			printf("[%.10lf] ", node->vector->data[i]);
 }
 
-//TODO @aaron
+/*  
+*Function: printResults
+*--------------------
+* Prints out the results of the previous transacted calculation.
+* The linear system of equations does not converge if the counter 
+* reaches the error bound before finishing the output of the calculation.
+*
+* Arguments
+*			 pResults:		A struct <VectorLinkedListNode> object, that is 
+*							implicitly defined by the struct <Vector> (values 
+*							represented as an array [double pointer]).
+*
+* Returns
+*			 None.
+*/
 void printResults(const VectorLinkedListNode* pResults)
 {
 	if (pResults)
@@ -228,6 +333,7 @@ void printResults(const VectorLinkedListNode* pResults)
 		{
 			printf("%d: ", count);
 			printCurrentNode(it);
+			//TODO kann durch printNewLine() ersetzt werden
 			printf("\n");
 
 			count++;
@@ -237,7 +343,21 @@ void printResults(const VectorLinkedListNode* pResults)
 	}
 }
 
-//TODO @aaron
+/*  
+*Function: printLastResult
+*--------------------
+* Finds the last node and prints out the last results of the calculation.
+* The linear system of equations does not converge if the counter 
+* reaches the error bound before finishing the output of the calculation.
+*
+* Arguments
+*			 pResults:		A struct <VectorLinkedListNode> object, that is 
+*							implicitly defined by the struct <Vector> (values 
+*							represented as an array [double pointer]).
+*
+* Returns
+*			 None.
+*/
 void printLastResult(const VectorLinkedListNode* pResults)
 {
 	if (pResults)
@@ -252,12 +372,24 @@ void printLastResult(const VectorLinkedListNode* pResults)
 		}	
 
 		printCurrentNode(node);
+		//TODO kann durch printNewLine() ersetzt werden
 		printf("\n");
 		if (count >= 100)
 			printf("note: Iteration limit was reached!");
 	}
 }
 
+/*  
+*Function: printNewLine
+*--------------------
+*  Simply prints a new line where the function is called.
+*
+* Arguments
+*			 None.
+*
+* Returns
+*			 None.
+*/
 void printNewLine()
 {
 	printf("\n");
@@ -269,7 +401,7 @@ int main()
 	bool bUserExit = false;
 	do
 	{
-		printf("this program solves linear systems of equations with jacobi or gauss-seidel algorithm\n\n");
+		printf("This program solves linear systems of equations with Jacobi or Gauss-Seidel algorithm.\n\n");
 
 		Matrix* pMatrix = (Matrix*)malloc(sizeof(*pMatrix));
 		Vector* pResultsVector = (Vector*)malloc(sizeof(*pResultsVector));
@@ -290,7 +422,7 @@ int main()
 			const clock_t t1 = startStopwatch();
 			VectorLinkedListNode* results = solve(method, pMatrix, pResultsVector, pStartVector, acc);
 			if (results == NULL)
-				printf("something went wrong, no results found!");
+				printf("Something went wrong, no results found!");
 
 			const float solvingTimeInS = stopStopwatch(t1);
 			printf("solved in %.2fs\n", solvingTimeInS);
@@ -320,7 +452,7 @@ int main()
 		}
 		else
 		{
-			printf("memory allocation failed! Maybe there is no free RAM left..\n");
+			printf("Memory allocation failed! Maybe there is no free RAM left..\n");
 		}
 	} while (!bUserExit);
 }
