@@ -4,6 +4,8 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdarg.h>
+#include <math.h>
+
 #include "linear_system_functions.h"
 //#include "test.h"
 
@@ -97,7 +99,7 @@ bool inputMethodValidation(const int32_t input, Method* returnValue)
 */
 bool userInputFileValidation(const char* path, Matrix* pMatrix, Vector* pResultsVector, Vector* pStartVector)
 {
-	printf("Loading file..\n");
+	printf("loading file..\n");
 	const clock_t t1 = startStopwatch();
 		
 	bool bRet = load(path, pMatrix, pResultsVector, pStartVector);
@@ -105,7 +107,7 @@ bool userInputFileValidation(const char* path, Matrix* pMatrix, Vector* pResults
 	if (bRet)
 	{
 		const float loadingTimeInS = stopStopwatch(t1);
-		printf("File loaded in %.2fs\n", loadingTimeInS);
+		printf("file loaded in %.2fs\n", loadingTimeInS);
 	}
 	
 	return bRet;
@@ -132,7 +134,7 @@ void userInputPath(Matrix* pMatrix, Vector* pResultsVector,Vector* pStartVector)
 	char* buffer = malloc(sizeof(char) * 1024);
 	do
 	{
-		printf("Please enter file path of linear system (csv): ");		
+		printf("please enter file path of linear system (csv): ");		
 		scanf("%1023s", buffer);
 		clearInputBuffer();
 		
@@ -140,7 +142,7 @@ void userInputPath(Matrix* pMatrix, Vector* pResultsVector,Vector* pStartVector)
 		bRet = userInputFileValidation(buffer, pMatrix, pResultsVector, pStartVector);
 
 		if(!bRet)
-			printf("Given path does not exist or file is invalid!\n\n");
+			printf("given path does not exist or file is invalid!\n\n");
 
 	} while (!bRet);
 }
@@ -166,7 +168,7 @@ Method userInputMethod()
 	Method method;
 	do
 	{
-		printf("Iteration method:\n1. Jacobi\n2. Gauss-Seidel\n\n");		
+		printf("iteration method:\n1. Jacobi\n2. Gauss-Seidel\n\n");		
 		scanf("%d", &input);
 		clearInputBuffer();
 		
@@ -175,7 +177,7 @@ Method userInputMethod()
 		bRet = inputMethodValidation(input, &method);
 
 		if(!bRet)
-			printf("Input is invalid!\n\n");
+			printf("input is invalid!\n\n");
 
 	} while (!bRet);
 
@@ -202,7 +204,7 @@ bool userInputPrintResults()
 	int32_t input = 0;
 	do
 	{
-		printf("Results:\n1. Print all results\n2. Print last result only\n\n");
+		printf("results:\n1. Print all results\n2. Print last result only\n\n");
 
 		scanf("%d", &input);
 		clearInputBuffer();
@@ -210,9 +212,13 @@ bool userInputPrintResults()
 		bRet = input == 1 || input == 2;
 
 		if (!bRet)
-			printf("Input is invalid!\n\n");
+			printf("input is invalid!\n");
+
+		printf("\n");
 
 	} while (!bRet);
+
+
 
 	return input == 1;
 }
@@ -238,7 +244,7 @@ bool userInputNewCalcOrExit()
 	int32_t input = 0;
 	do
 	{
-		printf("1. Start new calculation\n2. Exit program\n\n");
+		printf("1. start new calculation\n2. Exit program\n\n");
 
 		scanf("%d", &input);
 		clearInputBuffer();
@@ -246,7 +252,7 @@ bool userInputNewCalcOrExit()
 		bRet = input == 1 || input == 2;
 
 		if (!bRet)
-			printf("Input is invalid!\n\n");
+			printf("input is invalid!\n\n");
 
 	} while (!bRet);
 
@@ -281,7 +287,7 @@ double userInputAccuracy()
 		bRet = inputAcc >= 0;
 
 		if(!bRet)
-			printf("Specified accuracy is invalid. Value has to be equal or bigger than zero!\n\n");
+			printf("specified accuracy is invalid. Value has to be equal or bigger than zero!\n\n");
 
 	} while (!bRet);
 
@@ -306,7 +312,7 @@ void printCurrentNode(const VectorLinkedListNode* node)
 {
 	if (node && node->vector)
 		for (uint32_t i = 0; i < node->vector->n; i++)
-			printf("[%.10lf] ", node->vector->data[i]);
+			printf("[%.10lf]\t", node->vector->data[i]);
 }
 
 /*  
@@ -326,21 +332,27 @@ void printCurrentNode(const VectorLinkedListNode* node)
 */
 void printResults(const VectorLinkedListNode* pResults)
 {
+	printf("iterations:\n");
 	if (pResults)
 	{
 		uint32_t count = 1;
 		for (const VectorLinkedListNode* it = pResults; it != NULL; it = it->next)
 		{
-			printf("%d: ", count);
+			printf("%d:\t", count);
 			printCurrentNode(it);
 			//TODO kann durch printNewLine() ersetzt werden
 			printf("\n");
 
 			count++;
 		}
-		if (count >= 100)
-			printf("note: Iteration limit was reached!");
+		if (count >= NUMBER_OF_ITERATIONS)
+			printf("note: iteration limit was reached!\n");
 	}
+	else
+	{
+		printf("no resuls found!\n");
+	}
+	
 }
 
 /*  
@@ -360,6 +372,7 @@ void printResults(const VectorLinkedListNode* pResults)
 */
 void printLastResult(const VectorLinkedListNode* pResults)
 {
+	printf("last result:\n");
 	if (pResults)
 	{
 		//Find last Node
@@ -374,8 +387,12 @@ void printLastResult(const VectorLinkedListNode* pResults)
 		printCurrentNode(node);
 		//TODO kann durch printNewLine() ersetzt werden
 		printf("\n");
-		if (count >= 100)
-			printf("note: Iteration limit was reached!");
+		if (count >= NUMBER_OF_ITERATIONS)
+			printf("note: Iteration limit was reached!\n");
+	}
+	else
+	{
+		printf("no resuls found!\n");
 	}
 }
 
@@ -401,7 +418,7 @@ int main()
 	bool bUserExit = false;
 	do
 	{
-		printf("This program solves linear systems of equations with Jacobi or Gauss-Seidel algorithm.\n\n");
+		printf("this program solves linear systems of equations with Jacobi or Gauss-Seidel algorithm.\n\n");
 
 		Matrix* pMatrix = (Matrix*)malloc(sizeof(*pMatrix));
 		Vector* pResultsVector = (Vector*)malloc(sizeof(*pResultsVector));
@@ -422,7 +439,7 @@ int main()
 			const clock_t t1 = startStopwatch();
 			VectorLinkedListNode* results = solve(method, pMatrix, pResultsVector, pStartVector, acc);
 			if (results == NULL)
-				printf("Something went wrong, no results found!");
+				printf("something went wrong, no results found!");
 
 			const float solvingTimeInS = stopStopwatch(t1);
 			printf("solved in %.2fs\n", solvingTimeInS);
@@ -452,7 +469,7 @@ int main()
 		}
 		else
 		{
-			printf("Memory allocation failed! Maybe there is no free RAM left..\n");
+			printf("memory allocation failed! Maybe there is no free RAM left..\n");
 		}
 	} while (!bUserExit);
 }
