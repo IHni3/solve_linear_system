@@ -14,7 +14,14 @@
 
 void error(const char* location, const char* msg)
 {
+#if DEBUG
 	printf("error at %s: %s\n", location, msg);
+#else
+	(void)location; //because unused
+	printf("error: %s\n", msg);
+#endif // DEBUG
+
+	
 }
 
 bool addNullTermination(char* field, const uint32_t pos)
@@ -148,10 +155,11 @@ bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCo
 			bool bFirstIteration = true;
 
 			bool bSameNumberOfColumns = true; //checks if there is the same number of columns in each row
-			char c;
+			char c = 0, lastC;
 			bool bLineEmpty = true;
 			do
 			{
+				lastC = c;
 				c = (char)fgetc(pReadFileHandle);
 				if (c == DELIMITER)
 				{
@@ -184,6 +192,11 @@ bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCo
 					bLineEmpty = false;
 				}
 			} while (c != EOF && bSameNumberOfColumns == true);
+
+			if (lastC != LINE_ENDING) //When last line has no \n
+			{
+				nRows += 1;
+			}
 
 			bRet = bSameNumberOfColumns;
 
@@ -298,8 +311,8 @@ bool initVariablesForReadFile(const char* cFilename, Matrix* pMatrix, Vector* pR
 		}
 		else
 		{
-			pResultsVector->n = 0;
-			pResultsVector->data = NULL;
+			error(AT, "no results-vector given in file!");
+			return false;
 		}
 
 		if (bStartVectorGiven)
@@ -339,7 +352,7 @@ bool readFile(const char* cFilename, Matrix* pMatrix, Vector* pResultsVector, Ve
 		const bool bInitVariablesForReadFile = initVariablesForReadFile(cFilename, pMatrix, pResultsVector, pStartVector);
 		if (!bInitVariablesForReadFile)
 		{
-			error(AT, "initialization of rudimentary variables of the function readFile failed!");
+			error(AT, "initialization of variables for reading file failed!");
 			return false;
 		}
 
@@ -573,7 +586,7 @@ VectorLinkedListNode* solveGauss(Matrix* pMatrix, Vector* pResultVector, Vector*
 {
 	VectorLinkedListNode* pStartNode = NULL;
 
-	if (pMatrix && pResultVector && pStartVector && acc >= 0.f)
+	if (pMatrix && pMatrix->data && pResultVector && pResultVector->data && pStartVector && acc >= 0.f)
 	{
 		const uint32_t n = pMatrix->n;
 
@@ -649,7 +662,7 @@ VectorLinkedListNode* solveJacobi(Matrix* pMatrix, Vector* pResultVector, Vector
 {
 	VectorLinkedListNode* pStartNode = NULL;
 
-	if (pMatrix && pResultVector && pStartVector && acc >= 0.f)
+	if (pMatrix && pMatrix->data && pResultVector && pResultVector->data && pStartVector && acc >= 0.f)
 	{
 		uint32_t n = pMatrix->n;
 
