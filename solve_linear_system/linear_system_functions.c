@@ -217,7 +217,7 @@ bool interpretateDimensions(const uint32_t nRows, const uint32_t nCols, uint32_t
 
 	if (nCoefficients && bResults && bStartVector)
 	{
-		if (nRows > 0 && nCols > 0 && nCols <= nRows + 2) //+2 because of startvector and resultvector
+		if (nRows > 0 && nCols > 0 && nCols >= nRows && nCols <= nRows + 2) //between cols = rows and cols = rows + 2
 		{
 			*nCoefficients = nRows;
 
@@ -296,7 +296,7 @@ bool initVariablesForReadFile(const char* cFilename, Matrix* pMatrix, Vector* pR
 		const bool bInterpretateDimensions = interpretateDimensions(rows, cols, &nCoefficients, &bResultsVectorGiven, &bStartVectorGiven);
 		if (!bInterpretateDimensions)
 		{
-			error(AT, "interpretation of file dimensions failed!");
+			error(AT, "the dimensions of the given file are incorrect! accected file format: (ai1, ai2, ..., ain, bi[, xi])");
 			return false;
 		}
 
