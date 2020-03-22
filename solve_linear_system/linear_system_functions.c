@@ -35,16 +35,12 @@ bool currentFieldToNumber(const char* field, const uint32_t nSize, double* resul
 
 	if (field && nSize > 0 && result)
 	{
-		for (const char* current = field; *current != '\0' && bRet == true; current++)
-		{
-			if (isdigit(*current) == 0 && *current != '.')
-			{
-				bRet = false;
-			}
+		char* endPtr;
+		*result = strtod(field, &endPtr);
+		if (field == endPtr) //field is NaN
+		{				
+			bRet = false;
 		}
-
-		double num = atof(field);
-		*result = num;
 	}
 	else
 	{
