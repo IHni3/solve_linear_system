@@ -195,7 +195,7 @@ bool getDimensionsFromFile(const char* cFilename, uint32_t* nRows, uint32_t* nCo
 
 			if (lastC != LINE_ENDING) //When last line has no \n
 			{
-				nRows += 1;
+				*nRows += 1;
 			}
 
 			bRet = bSameNumberOfColumns;
