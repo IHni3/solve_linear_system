@@ -135,7 +135,7 @@ void userInputPath(Matrix* pMatrix, Vector* pResultsVector,Vector* pStartVector)
 	do
 	{
 		printf("please enter file path of linear system (csv): ");		
-		scanf("%1023s", buffer);
+		scanf("%1024[^\n]s", buffer);
 		clearInputBuffer();
 		
 
