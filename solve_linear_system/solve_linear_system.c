@@ -438,11 +438,14 @@ int main()
 			printf("solving linear system..\n");
 			const clock_t t1 = startStopwatch();
 			VectorLinkedListNode* results = solve(method, pMatrix, pResultsVector, pStartVector, acc);
-			if (results == NULL)
-				printf("something went wrong, no results found!");
-
 			const float solvingTimeInS = stopStopwatch(t1);
-			printf("solved in %.2fs\n", solvingTimeInS);
+
+			if (results == NULL)
+				printf("something went wrong, no results found!\n");
+			else
+			{
+				printf("solved in %.2fs\n", solvingTimeInS);
+			}
 
 			printNewLine();
 
